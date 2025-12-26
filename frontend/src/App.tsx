@@ -1,10 +1,13 @@
-import NotesPage from "./pages/NotesPage"
+import { BrowserRouter } from 'react-router-dom'
+import AppRoutes from './routes/AppRoutes'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <NotesPage />
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gray-100">
+        <AppRoutes />
+      </div>
+    </BrowserRouter>
   )
 }
 

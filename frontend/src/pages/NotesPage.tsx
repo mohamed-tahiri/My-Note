@@ -9,13 +9,20 @@ export default function NotesPage() {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const loadNotes = async () => {
-    const res = await notesService.getAll();
-    setNotes(res.data);
+    try {    
+      const res = await notesService.getAll();
+      setNotes(res.data);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadNotes();
+    const init = async () => {
+      await loadNotes();
+    };
+
+    init();
   }, []);
 
   const handleCreateOrUpdate = async (data: CreateNoteDto) => {
@@ -38,8 +45,9 @@ export default function NotesPage() {
       <h1 className="text-2xl font-bold">Notes</h1>
 
       <NoteForm
+        key={editingNote ? editingNote.id : 'new'}
         onSubmit={handleCreateOrUpdate}
-        initialData={editingNote ?? undefined}
+        editingNote={editingNote ?? undefined}
       />
 
       <NotesList
