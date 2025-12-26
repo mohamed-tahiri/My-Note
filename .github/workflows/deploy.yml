@@ -1,0 +1,26 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: |
+          cd backend
+          npm install
+          npm run build
+      - run: |
+          cd frontend
+          npm install
+          npm run build
+      # Docker build/push and k8s deploy steps go here
+

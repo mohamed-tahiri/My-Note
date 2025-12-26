@@ -1,0 +1,52 @@
+import { useEffect, useState } from 'react';
+import { notesService } from '../api/notesService';
+import type { Note, CreateNoteDto } from '../types/note';
+import { NoteForm } from '../components/notes/NoteForm';
+import { NotesList } from '../components/notes/NotesList';
+
+export default function NotesPage() {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+
+  const loadNotes = async () => {
+    const res = await notesService.getAll();
+    setNotes(res.data);
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadNotes();
+  }, []);
+
+  const handleCreateOrUpdate = async (data: CreateNoteDto) => {
+    if (editingNote) {
+      await notesService.update(editingNote.id, data);
+      setEditingNote(null);
+    } else {
+      await notesService.create(data);
+    }
+    loadNotes();
+  };
+
+  const handleDelete = async (id: number) => {
+    await notesService.delete(id);
+    loadNotes();
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Notes</h1>
+
+      <NoteForm
+        onSubmit={handleCreateOrUpdate}
+        initialData={editingNote ?? undefined}
+      />
+
+      <NotesList
+        notes={notes}
+        onEdit={setEditingNote}
+        onDelete={handleDelete}
+      />
+    </div>
+  );
+}
