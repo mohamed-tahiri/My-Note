@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { Note } from '../../types/note';
 
 interface Props {
@@ -8,7 +9,7 @@ interface Props {
 
 export function NoteItem({ note, onEdit, onDelete }: Props) {
   return (
-    <div className="border rounded p-4 bg-white shadow">
+    <Link to={`/notes/${note.id}`} className="border rounded p-4 bg-white shadow">
       <h3 className="font-semibold text-lg">{note.title}</h3>
       <p className="text-gray-600 mt-1">{note.content}</p>
 
@@ -26,6 +27,6 @@ export function NoteItem({ note, onEdit, onDelete }: Props) {
           Delete
         </button>
       </div>
-    </div>
+    </Link>
   );
 }
