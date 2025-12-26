@@ -37,6 +37,30 @@ export class NotesService {
     return saved;
   }
 
+  async update(id: number, dto: CreateNoteDto): Promise<Note> {
+    const user = await this.userRepository.findOneBy({ id: dto.userId });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Mettre à jour la note
+    await this.noteRepository.update(id, {
+      title: dto.title,
+      content: dto.content,
+      user: user,
+    });
+
+    // Récupérer la note mise à jour
+    const updatedNote = await this.noteRepository.findOneBy({ id });
+    if (!updatedNote) throw new NotFoundException('Note not found');
+
+    // 🔔 Event-driven
+    this.eventEmitter.emit('note.updated', {
+      noteId: updatedNote.id,
+      userId: user.id,
+    });
+
+    return updatedNote;
+  }
+
   async findAll(): Promise<Note[]> {
     return this.noteRepository.find({
       relations: ['user'],

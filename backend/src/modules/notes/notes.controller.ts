@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { NotesService } from './notes.service';
@@ -34,6 +35,12 @@ export class NotesController {
   @ApiOperation({ summary: 'Get note by id' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.notesService.findOne(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a note' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateNoteDto) {
+    return this.notesService.update(id, dto);
   }
 
   @Delete(':id')
