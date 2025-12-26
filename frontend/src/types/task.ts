@@ -21,3 +21,4 @@ export interface UpdateTaskDto {
   assigneeId?: number;
   relatedNoteId?: number;
 }
+
