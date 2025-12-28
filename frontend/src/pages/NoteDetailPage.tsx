@@ -54,7 +54,7 @@ export default function NoteDetailPage() {
   if (!note) return <div className="p-4">Note not found</div>
 
   return (
-    <div className="p-6">
+    <div>
       <h1 className="text-2xl font-bold mb-2">{note.title}</h1>
       <p className="text-gray-700 whitespace-pre-line">{note.content}</p>
       <p className="mt-4 text-sm text-gray-500">

@@ -1,11 +1,8 @@
-import React from 'react'
-
-const TasksPage = () => {
+export default function TasksPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Tasks Page</h1>   
+      <h1 className="text-2xl font-bold">Tasks</h1>
+      {/* Tasks content goes here */}
     </div>
-  )
+  );
 }
-
-export default TasksPage

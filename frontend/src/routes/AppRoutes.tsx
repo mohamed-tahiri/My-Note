@@ -4,20 +4,21 @@ import TasksPage from '../pages/TasksPage'
 import AppointmentsPage from '../pages/AppointmentsPage'
 import ChatPage from '../pages/ChatPage'
 import NoteDetailPage from '../pages/NoteDetailPage'
+import Layout from '../components/layout/Layout'
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Home */}
       <Route path="/" element={<Navigate to="/notes" replace />} />
 
-      {/* Pages */}
-      {/* Notes */}
-      <Route path="/notes" element={<NotesPage />} />
-      <Route path="/notes/:id" element={<NoteDetailPage />} />
-      <Route path="/tasks" element={<TasksPage />} /> 
-      <Route path="/appointments" element={<AppointmentsPage />} />
-      <Route path="/chat" element={<ChatPage />} />
+      {/* Routes enveloppées dans le Layout */}
+      <Route element={<Layout />}>
+        <Route path="/notes" element={<NotesPage />} />
+        <Route path="/notes/:id" element={<NoteDetailPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/appointments" element={<AppointmentsPage />} />
+        <Route path="/chat" element={<ChatPage />} />
+      </Route>
 
       {/* 404 */}
       <Route path="*" element={<div className="p-6">Page not found</div>} />
