@@ -19,6 +19,7 @@ export class TasksService {
     private readonly noteRepository: Repository<Note>,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
   async create(dto: CreateTaskDto): Promise<Task> {
     const assignee = await this.userRepository.findOneBy({
       id: dto.assigneeId,
@@ -46,6 +47,18 @@ export class TasksService {
   async findAll(): Promise<Task[]> {
     return this.taskRepository.find({ relations: ['assignee', 'relatedNote'] });
   }
+
+  async findTaskByNote(id: number): Promise<Task[]> {
+    const tasks = await this.taskRepository.find({
+      where: { relatedNote: { id } },
+      relations: ['assignee', 'relatedNote'],
+    });
+
+    if (!tasks) throw new NotFoundException('Task not found');
+
+    return tasks;
+  }
+
   async findOne(id: number): Promise<Task> {
     const task = await this.taskRepository.findOne({
       where: { id },

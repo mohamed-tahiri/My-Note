@@ -28,11 +28,19 @@ export class TasksController {
   findAll(): Promise<Task[]> {
     return this.tasksService.findAll();
   }
+
+  @Get(':id/note')
+  @ApiOperation({ summary: 'Get task by id' })
+  findTaskByNote(@Param('id', ParseIntPipe) id: number): Promise<Task[]> {
+    return this.tasksService.findTaskByNote(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get task by id' })
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Task> {
     return this.tasksService.findOne(id);
   }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update a task' })
   update(
@@ -41,6 +49,7 @@ export class TasksController {
   ): Promise<Task> {
     return this.tasksService.update(id, dto);
   }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a task' })
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
