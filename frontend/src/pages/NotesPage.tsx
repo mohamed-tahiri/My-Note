@@ -3,6 +3,7 @@ import { notesService } from '../api/notesService';
 import type { Note, CreateNoteDto } from '../types/note';
 import { NoteForm } from '../components/notes/NoteForm';
 import { NotesList } from '../components/notes/NotesList';
+import { Header } from '../components/layout/Header';
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -41,20 +42,23 @@ export default function NotesPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Notes</h1>
+    <>
+      <Header />
+      <div className="max-w-3xl mx-auto p-6 space-y-6">
+        <h1 className="text-2xl font-bold">Notes</h1>
 
-      <NoteForm
-        key={editingNote ? editingNote.id : 'new'}
-        onSubmit={handleCreateOrUpdate}
-        editingNote={editingNote ?? undefined}
-      />
+        <NoteForm
+          key={editingNote ? editingNote.id : 'new'}
+          onSubmit={handleCreateOrUpdate}
+          editingNote={editingNote ?? undefined}
+        />
 
-      <NotesList
-        notes={notes}
-        onEdit={setEditingNote}
-        onDelete={handleDelete}
-      />
-    </div>
+        <NotesList
+          notes={notes}
+          onEdit={setEditingNote}
+          onDelete={handleDelete}
+        />
+      </div>
+    </>
   );
 }
