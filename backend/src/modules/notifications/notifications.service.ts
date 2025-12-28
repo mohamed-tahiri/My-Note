@@ -1,26 +1,87 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+// import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { NotificationsGateway } from './notifications.gateway';
+import { User } from '../users/entities/user.entity';
+import { Notification } from './entities/notification.entity';
 
 @Injectable()
 export class NotificationsService {
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+  constructor(
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly gateway: NotificationsGateway,
+  ) {}
+
+  async create(createNotificationDto: CreateNotificationDto) {
+    const user = await this.userRepository.findOneBy({
+      id: createNotificationDto.userId,
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const notification = this.notificationRepository.create({
+      content: createNotificationDto.content,
+      read: false,
+      user,
+    });
+
+    const saved = await this.notificationRepository.save(notification);
+
+    this.gateway.emitNotification(user.id, {
+      id: saved.id,
+      content: saved.content,
+      createdAt: saved.createdAt,
+    });
+
+    return saved;
   }
 
-  findAll() {
-    return `This action returns all notifications`;
+  async findAll() {
+    return await this.notificationRepository.find({});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
+  async findByUser(userId: number) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.notificationRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    return `This action updates a #${id} notification`;
+  async markAsRead(notificationId: number) {
+    const notification = await this.notificationRepository.findOneBy({
+      id: notificationId,
+    });
+
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    notification.read = true;
+    return await this.notificationRepository.save(notification);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
-  }
+  // findOne(id: number) {
+  //   return `This action returns a #${id} notification`;
+  // }
+
+  // update(id: number, updateNotificationDto: UpdateNotificationDto) {
+  //   return `This action updates a #${id} notification`;
+  // }
+
+  // remove(id: number) {
+  //   return `This action removes a #${id} notification`;
+  // }
 }
