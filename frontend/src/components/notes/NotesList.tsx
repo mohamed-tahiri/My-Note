@@ -9,7 +9,7 @@ interface Props {
 
 export function NotesList({ notes, onEdit, onDelete }: Props) {
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-2">
       {notes.map((note) => (
         <NoteItem
           key={note.id}

@@ -1,21 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { CreateNoteDto, Note } from '../../types/note';
 
 interface Props {
+  isOpen: boolean;
   onSubmit: (data: CreateNoteDto, id?: number) => void;
   editingNote?: Note;
-  onCancel?: () => void;
+  onClose: () => void;
 }
 
-export function NoteForm({ onSubmit, editingNote, onCancel }: Props) {
+export function NoteFormModal({
+  isOpen,
+  onSubmit,
+  editingNote,
+  onClose,
+}: Props) {
   const [formData, setFormData] = useState({
-    title: editingNote?.title || '',
-    content: editingNote?.content || '',
+    title: '',
+    content: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Sync when editing
+  useEffect(() => {
+    if (editingNote) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData({
+        title: editingNote.title,
+        content: editingNote.content,
+      });
+    } else {
+      setFormData({ title: '', content: '' });
+    }
+  }, [editingNote, isOpen]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,46 +48,76 @@ export function NoteForm({ onSubmit, editingNote, onCancel }: Props) {
       editingNote?.id
     );
 
-    if (!editingNote) {
-      setFormData({ title: '', content: '' });
-    }
+    onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-3">
-      <h2 className="text-lg font-semibold">
-        {editingNote ? 'Edit Note' : 'Create Note'}
-      </h2>
-
-      <input
-        name="title"
-        className="w-full border rounded px-3 py-2"
-        placeholder="Title"
-        value={formData.title}
-        onChange={handleChange}
-        required
+    <div className="fixed inset-0 h-[100vh] z-50 flex items-center justify-center">
+      
+      {/* Overlay */}
+      <div
+        className="absolute inset-0 bg-black/30"
+        onClick={onClose}
       />
 
-      <textarea
-        name="content"
-        className="w-full border rounded px-3 py-2"
-        placeholder="Content"
-        rows={4}
-        value={formData.content}
-        onChange={handleChange}
-        required
-      />
-
-      <div className="flex gap-2">
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-          {editingNote ? 'Update' : 'Create'}
-        </button>
-        {editingNote && (
-          <button type="button" onClick={onCancel} className="bg-gray-400 text-white px-4 py-2 rounded">
-            Cancel
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-lg rounded-lg bg-white shadow-lg">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h2 className="text-lg font-semibold">
+            {editingNote ? 'Edit Note' : 'Create Note'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            ✕
           </button>
-        )}
+        </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="space-y-4 p-4">
+          <input
+            name="title"
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
+
+          <textarea
+            name="content"
+            rows={5}
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Content"
+            value={formData.content}
+            onChange={handleChange}
+            required
+          />
+
+          {/* Footer */}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="rounded bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+            >
+              {editingNote ? 'Update' : 'Create'}
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   );
 }

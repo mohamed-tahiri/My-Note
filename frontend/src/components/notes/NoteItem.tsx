@@ -9,24 +9,40 @@ interface Props {
 
 export function NoteItem({ note, onEdit, onDelete }: Props) {
   return (
-    <Link to={`/notes/${note.id}`} className="border rounded p-4 bg-white shadow">
-      <h3 className="font-semibold text-lg">{note.title}</h3>
-      <p className="text-gray-600 mt-1">{note.content}</p>
+    <div className="relative rounded-lg border bg-white p-4 shadow-sm hover:shadow-md transition">
+      
+      {/* Zone cliquable */}
+      <Link to={`/notes/${note.id}`} className="block">
+        <h3 className="font-semibold text-lg text-gray-800">
+          {note.title}
+        </h3>
+        <p className="text-gray-600 mt-1 line-clamp-2">
+          {note.content}
+        </p>
+      </Link>
 
-      <div className="flex gap-2 mt-3">
+      {/* Actions */}
+      <div className="flex justify-end gap-3 mt-4">
         <button
-          onClick={onEdit}
-          className="text-sm text-blue-600 hover:underline"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="text-sm text-indigo-600 hover:underline"
         >
           Edit
         </button>
+
         <button
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
           className="text-sm text-red-600 hover:underline"
         >
           Delete
         </button>
       </div>
-    </Link>
+    </div>
   );
 }
