@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Note } from '../../types/note';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 interface Props {
   note: Note;
@@ -9,7 +11,7 @@ interface Props {
 
 export function NoteItem({ note, onEdit, onDelete }: Props) {
   return (
-    <div className="relative rounded-lg border bg-white p-4 shadow-sm hover:shadow-md transition">
+    <div className="flex  items-center justify-between bg-indigo-50 hover:bg-indigo-100 border-l-4 border-l-indigo-600 p-4 shadow-sm hover:shadow-md transition">
       
       {/* Zone cliquable */}
       <Link to={`/notes/${note.id}`} className="block">
@@ -28,9 +30,9 @@ export function NoteItem({ note, onEdit, onDelete }: Props) {
             e.stopPropagation();
             onEdit();
           }}
-          className="text-sm text-indigo-600 hover:underline"
+          className="text-sm text-indigo-600 cursor-pointer"
         >
-          Edit
+          <EditIcon />
         </button>
 
         <button
@@ -38,9 +40,9 @@ export function NoteItem({ note, onEdit, onDelete }: Props) {
             e.stopPropagation();
             onDelete();
           }}
-          className="text-sm text-red-600 hover:underline"
+          className="text-sm text-red-600 cursor-pointer"
         >
-          Delete
+          <DeleteIcon />
         </button>
       </div>
     </div>

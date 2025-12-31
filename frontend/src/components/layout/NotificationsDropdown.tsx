@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 import type { Notification } from '@/types/notification';
 import { getByUserId, markAsRead } from '@/api/notificationsService';
@@ -13,6 +13,7 @@ interface NotificationsDropdownProps {
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -24,8 +25,11 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
   }, [userId]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadNotifications();
+    const initializeNotes = async () => {
+      await loadNotifications();
+    };
+
+    initializeNotes();
 
     const handleNewNotif = (notif: Notification) => {
       setNotifications(prev => [notif, ...prev]);
@@ -49,17 +53,35 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
     }
   };
 
+  // === Gestion clic en dehors ===
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="relative">
-      {/* Bouton notifications */}
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
         className="relative p-2 rounded hover:bg-indigo-50 transition-colors"
         aria-label="Notifications"
       >
-        <NotificationsIcon style={{ color: '#1e293b' }} /> {/* texte noir foncé */}
+        <NotificationsIcon style={{ color: '#1e293b' }} />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
             {unreadCount}
@@ -67,7 +89,6 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
         )}
       </button>
 
-      {/* Liste déroulante */}
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto z-50">
           <div className="px-2 py-4 font-semibold text-sm text-indigo-700">
