@@ -15,6 +15,13 @@ export const getAll = () => api.get('/tasks');
 export const getTasksByNote = (noteId: number) => api.get(`/tasks/${noteId}/note`);
 
 /**
+ * Récupère toutes les tâches liées à un utilisateur spécifique.
+ * @param userId L'identifiant de l'utilisateur
+ * @returns Une promesse contenant la liste des tâches liées à l'utilisateur
+ */
+export const getTasksByUser = (userId: number) => api.get(`/tasks/${userId}/user`);
+
+/**
  * Récupère une tâche par son ID.
  * @param id L'identifiant de la tâche
  * @returns Une promesse contenant la tâche correspondante
