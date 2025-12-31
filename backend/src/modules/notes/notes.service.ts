@@ -82,7 +82,20 @@ export class NotesService {
   }
 
   async remove(id: number): Promise<void> {
+    const note = await this.noteRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
     const result = await this.noteRepository.delete(id);
+
+    this.eventEmitter.emit('note.deleted', {
+      noteId: id,
+      userId: note.user.id,
+    });
 
     if (result.affected === 0) {
       throw new NotFoundException('Note not found');

@@ -30,9 +30,15 @@ export class TasksController {
   }
 
   @Get(':id/note')
-  @ApiOperation({ summary: 'Get task by id' })
+  @ApiOperation({ summary: 'Get task by note id' })
   findTaskByNote(@Param('id', ParseIntPipe) id: number): Promise<Task[]> {
     return this.tasksService.findTaskByNote(id);
+  }
+
+  @Get(':id/user')
+  @ApiOperation({ summary: 'Get task by user id' })
+  findTaskByUser(@Param('id', ParseIntPipe) id: number): Promise<Task[]> {
+    return this.tasksService.findTaskByUser(id);
   }
 
   @Get(':id')

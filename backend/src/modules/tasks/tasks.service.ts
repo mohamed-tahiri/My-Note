@@ -38,10 +38,12 @@ export class TasksService {
       relatedNote,
     });
     const savedTask = await this.taskRepository.save(task);
+
     this.eventEmitter.emit('task.created', {
       taskId: savedTask.id,
       assigneeId: assignee.id,
     });
+
     return savedTask;
   }
   async findAll(): Promise<Task[]> {
@@ -51,6 +53,17 @@ export class TasksService {
   async findTaskByNote(id: number): Promise<Task[]> {
     const tasks = await this.taskRepository.find({
       where: { relatedNote: { id } },
+      relations: ['assignee', 'relatedNote'],
+    });
+
+    if (!tasks) throw new NotFoundException('Task not found');
+
+    return tasks;
+  }
+
+  async findTaskByUser(id: number): Promise<Task[]> {
+    const tasks = await this.taskRepository.find({
+      where: { assignee: { id } },
       relations: ['assignee', 'relatedNote'],
     });
 
@@ -85,12 +98,20 @@ export class TasksService {
     }
     Object.assign(task, dto);
     const updatedTask = await this.taskRepository.save(task);
-    this.eventEmitter.emit('task.updated', { taskId: updatedTask.id });
+
+    this.eventEmitter.emit('task.updated', {
+      taskId: updatedTask.id,
+      assigneeId: updatedTask.assignee.id,
+    });
+
     return updatedTask;
   }
   async remove(id: number): Promise<void> {
     const task = await this.findOne(id);
     await this.taskRepository.remove(task);
-    this.eventEmitter.emit('task.deleted', { taskId: task.id });
+    this.eventEmitter.emit('task.deleted', {
+      taskId: task.id,
+      assigneeId: task.assignee.id,
+    });
   }
 }
