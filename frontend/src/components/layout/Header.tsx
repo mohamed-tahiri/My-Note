@@ -14,17 +14,15 @@ export default function Header() {
         <Link to="/" className="text-xl font-bold text-indigo-600">
           My Note
         </Link>
-
-        {/* Navigation */}
-        <nav className="hidden md:flex space-x-6 text-gray-700">
-          <Link to="/notes" className="hover:text-indigo-500 transition-colors">Notes</Link>
-          <Link to="/tasks" className="hover:text-indigo-500 transition-colors">Tasks</Link>
-          <Link to="/appointments" className="hover:text-indigo-500 transition-colors">Appointments</Link>
-          <Link to="/chat" className="hover:text-indigo-500 transition-colors">Chat</Link>
-        </nav>
-
-        {/* Notifications */}
-        <NotificationsDropdown socket={socket} userId={userId} />
+        <div className='flex items-center space-x-2'>
+          <nav className="hidden md:flex space-x-6 text-gray-700">
+            <Link to="/notes" className="hover:text-indigo-500 transition-colors">Notes</Link>
+            <Link to="/tasks" className="hover:text-indigo-500 transition-colors">Tasks</Link>
+            <Link to="/appointments" className="hover:text-indigo-500 transition-colors">Appointments</Link>
+            <Link to="/chat" className="hover:text-indigo-500 transition-colors">Chat</Link>
+          </nav>
+          <NotificationsDropdown socket={socket} userId={userId} />
+        </div>
       </div>
     </header>
   );

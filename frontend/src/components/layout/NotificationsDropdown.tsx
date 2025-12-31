@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Socket } from 'socket.io-client';
-import type { Notification } from '../../types/notification';
-import { notificationsService } from '../../api/notificationsService';
+import type { Notification } from '@/types/notification';
+import { getByUserId, markAsRead } from '@/api/notificationsService';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { logger } from '@/utils/logger';
 
 interface NotificationsDropdownProps {
   socket: Socket;
@@ -15,10 +16,10 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
 
   const loadNotifications = useCallback(async () => {
     try {
-      const res = await notificationsService.getByUserId(userId);
+      const res = await getByUserId(userId);
       setNotifications(res.data);
     } catch (err) {
-      console.error('Erreur lors du chargement des notifications:', err);
+      logger.error('Erreur lors du chargement des notifications:', err);
     }
   }, [userId]);
 
@@ -37,14 +38,14 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
     };
   }, [loadNotifications, socket]);
 
-  const markAsRead = async (id: number) => {
+  const markAsReadNoti = async (id: number) => {
     try {
-      await notificationsService.markAsRead(id);
+      await markAsRead(id);
       setNotifications(prev =>
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
       );
     } catch (err) {
-      console.error('Erreur lors du marquage comme lu:', err);
+      logger.error('Erreur lors du marquage comme lu:', err);
     }
   };
 
@@ -81,7 +82,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
             notifications.map(notif => (
               <div
                 key={notif.id}
-                onClick={() => !notif.read && markAsRead(notif.id)}
+                onClick={() => !notif.read && markAsReadNoti(notif.id)}
                 className={`p-3 cursor-pointer transition-colors ${
                   !notif.read
                     ? 'bg-indigo-100 hover:bg-indigo-200 border-l-4 border-l-indigo-600'
