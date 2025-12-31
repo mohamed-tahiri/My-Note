@@ -1,61 +1,102 @@
-import { useState } from 'react'
-import type { CreateTaskDto } from '../../types/task'
-import { tasksService } from '../../api/tasksService'
+import { useState, useEffect } from 'react';
+import type { CreateTaskDto } from '@/types/task';
+import { create } from '@/api/tasksService';
 
 interface Props {
-  noteId: number
-  onCreated: () => void
+  noteId: number;
+  isOpen: boolean;
+  onClose: () => void;
+  onCreated: () => void;
 }
 
-export function CreateTaskForm({ noteId, onCreated }: Props) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [loading, setLoading] = useState(false)
+export function CreateTaskModal({ noteId, isOpen, onClose, onCreated }: Props) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setTitle('');
+      setDescription('');
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     const data: CreateTaskDto = {
-        title,
-        description,
-        relatedNoteId: noteId,
-        assigneeId: 1, // Default assignee for simplicity
-    }
+      title,
+      description,
+      relatedNoteId: noteId,
+      assigneeId: 1,
+    };
 
     try {
-      await tasksService.create(data)
-      setTitle('')
-      setDescription('')
-      onCreated()
+      await create(data);
+      onCreated();
+      onClose();
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      <input
-        className="w-full border px-3 py-2 rounded"
-        placeholder="Task title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-      />
+    <div className="fixed inset-0 z-50 flex items-center justify-center h-screen">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-      <textarea
-        className="w-full border px-3 py-2 rounded"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-md rounded-lg bg-white shadow-lg">
+        {/* Header */}
+        <div className="flex justify-between items-center border-b px-4 py-3">
+          <h2 className="text-lg font-semibold">Create Task</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            ✕
+          </button>
+        </div>
 
-      <button
-        disabled={loading}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
-      >
-        {loading ? 'Creating...' : 'Add Task'}
-      </button>
-    </form>
-  )
+        {/* Body / Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 p-4">
+          <input
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Task title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+
+          <textarea
+            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Description"
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+
+          {/* Footer */}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+            >
+              {loading ? 'Creating...' : 'Add Task'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
