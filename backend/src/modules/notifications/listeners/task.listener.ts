@@ -21,12 +21,22 @@ export class TaskListener {
   }
 
   @OnEvent('task.updated')
-  handleTaskUpdated(payload: { taskId: number }) {
+  async handleTaskUpdated(payload: { taskId: number; assigneeId: number }) {
+    await this.notificationService.create({
+      userId: payload.assigneeId,
+      content: `Task ${payload.taskId} updated`,
+    });
+
     this.logger.log(`Task updated! Task ID: ${payload.taskId}`);
   }
 
   @OnEvent('task.deleted')
-  handleTaskDeleted(payload: { taskId: number }) {
+  async handleTaskDeleted(payload: { taskId: number; assigneeId: number }) {
+    await this.notificationService.create({
+      userId: payload.assigneeId,
+      content: `Task ${payload.taskId} deleted`,
+    });
+
     this.logger.log(`Task deleted! Task ID: ${payload.taskId}`);
   }
 }

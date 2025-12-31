@@ -7,6 +7,12 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
+interface NotificationPayload {
+  id: number;
+  content: string;
+  createdAt: Date;
+}
+
 @WebSocketGateway({
   cors: {
     origin: 'http://localhost:5173',
@@ -43,7 +49,7 @@ export class NotificationsGateway
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  emitNotification(userId: number, payload: any) {
+  emitNotification(userId: number, payload: NotificationPayload) {
     this.server.to(`user-${userId}`).emit('notification', payload);
   }
 }
