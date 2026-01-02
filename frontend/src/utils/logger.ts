@@ -1,7 +1,7 @@
-const isDev = import.meta.env.DEV;
+import { env } from '@/utils/env';
 
 export const logger = {
-  log: (...args: unknown[]) => { if (isDev) console.log(...args); },
-  warn: (...args: unknown[]) => { if (isDev) console.warn(...args); },
-  error: (...args: unknown[]) => { if (isDev) console.error(...args); },
+  log: (...args: unknown[]) => { if (env.nodeEnv === 'dev') console.log(...args); },
+  warn: (...args: unknown[]) => { if (env.nodeEnv === 'dev') console.warn(...args); },
+  error: (...args: unknown[]) => { if (env.nodeEnv === 'dev') console.error(...args); },
 };
