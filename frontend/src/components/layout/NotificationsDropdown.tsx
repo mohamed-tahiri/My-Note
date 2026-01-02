@@ -90,7 +90,7 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto z-50">
+        <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto z-50">
           <div className="px-2 py-4 font-semibold text-sm text-indigo-700">
             Notifications
           </div>
