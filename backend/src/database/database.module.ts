@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
 import { Notification } from '../modules/notifications/entities/notification.entity';
 import { Chat } from '../modules/chat/entities/chat.entity';
 import { Message } from '../modules/messages/entities/message.entity';
@@ -11,25 +13,29 @@ import { File } from '../modules/files/entities/file.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST ?? 'localhost',
-      port: parseInt(process.env.DB_PORT ?? '5432', 10),
-      username: process.env.DB_USER ?? 'user',
-      password: process.env.DB_PASSWORD ?? 'password',
-      database: process.env.DB_NAME ?? 'appdb',
-      entities: [
-        User,
-        Note,
-        Message,
-        Chat,
-        Notification,
-        Task,
-        Appointment,
-        File,
-      ],
-      synchronize: true,
-      logging: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USER'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_NAME'),
+        entities: [
+          User,
+          Note,
+          Message,
+          Chat,
+          Notification,
+          Task,
+          Appointment,
+          File,
+        ],
+        synchronize: true, // ⚠️ false en prod
+        logging: true,
+      }),
     }),
   ],
 })
