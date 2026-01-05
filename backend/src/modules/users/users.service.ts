@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -15,9 +16,19 @@ export class UsersService {
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
-    const user = this.userRepository.create(dto);
+    const saltRounds = 10;
+
+    const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
+
+    const user = this.userRepository.create({
+      ...dto,
+      password: hashedPassword,
+    });
+
     await this.userRepository.save(user);
+
     this.eventEmitter.emit('user.created', user);
+
     return user;
   }
 
@@ -27,6 +38,14 @@ export class UsersService {
 
   async findOne(id: number): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       throw new NotFoundException('User not found');
     }

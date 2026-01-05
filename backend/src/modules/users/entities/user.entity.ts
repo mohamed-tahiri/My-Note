@@ -1,3 +1,7 @@
+import { Appointment } from '@/modules/appointments/entities/appointment.entity';
+import { Message } from '@/modules/messages/entities/message.entity';
+import { Note } from '@/modules/notes/entities/note.entity';
+import { Task } from '@/modules/tasks/entities/task.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,10 +10,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Note } from '../../notes/entities/note.entity';
-import { Message } from '../../messages/entities/message.entity';
-import { Task } from '../../tasks/entities/task.entity';
-import { Appointment } from '../../appointments/entities/appointment.entity';
 
 @Entity()
 export class User {
@@ -24,6 +24,9 @@ export class User {
 
   @Column()
   role: string; // admin, user, manager
+
+  @Column({ type: 'varchar', nullable: true })
+  refreshToken: string | null;
 
   @OneToMany(() => Note, (note) => note.user)
   notes: Note[];
