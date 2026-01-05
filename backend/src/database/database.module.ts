@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { Notification } from '../modules/notifications/entities/notification.entity';
-import { Chat } from '../modules/chat/entities/chat.entity';
-import { Message } from '../modules/messages/entities/message.entity';
-import { Note } from '../modules/notes/entities/note.entity';
-import { User } from '../modules/users/entities/user.entity';
-import { Task } from '../modules/tasks/entities/task.entity';
-import { Appointment } from '../modules/appointments/entities/appointment.entity';
-import { File } from '../modules/files/entities/file.entity';
+import { File } from '@/modules/files/entities/file.entity';
+import { Appointment } from '@/modules/appointments/entities/appointment.entity';
+import { User } from '@/modules/users/entities/user.entity';
+import { Note } from '@/modules/notes/entities/note.entity';
+import { Message } from '@/modules/messages/entities/message.entity';
+import { Chat } from '@/modules/chat/entities/chat.entity';
+import { Notification } from '@/modules/notifications/entities/notification.entity';
+import { Task } from '@/modules/tasks/entities/task.entity';
 
 @Module({
   imports: [
@@ -33,8 +33,8 @@ import { File } from '../modules/files/entities/file.entity';
           Appointment,
           File,
         ],
-        synchronize: true, // ⚠️ false en prod
-        logging: true,
+        synchronize: config.get<boolean>('DB_SYNCHRONIZE'),
+        logging: config.get<boolean>('DB_LOGGING'),
       }),
     }),
   ],

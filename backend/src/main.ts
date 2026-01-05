@@ -3,9 +3,11 @@ import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { setupSwagger } from './config/swagger.config';
 import { ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
 
   app.enableCors({
     origin: ['http://localhost:5173'],
