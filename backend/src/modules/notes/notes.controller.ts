@@ -8,12 +8,13 @@ import {
   Delete,
   Patch,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { Note } from './entities/note.entity';
 
 @ApiTags('Notes')
+@ApiBearerAuth('JWT-auth')
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}

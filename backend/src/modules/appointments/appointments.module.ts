@@ -3,8 +3,8 @@ import { AppointmentsService } from './appointments.service';
 import { AppointmentsController } from './appointments.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
-import { User } from '../users/entities/user.entity';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [

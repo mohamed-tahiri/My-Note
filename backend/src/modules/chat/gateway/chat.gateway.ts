@@ -11,8 +11,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UsePipes, ValidationPipe, Logger } from '@nestjs/common';
-import { CreateMessageDto } from '../../messages/dto/create-message.dto';
-import { MessagesService } from '../../messages/messages.service';
+import { MessagesService } from '@/modules/messages/messages.service';
+import { CreateMessageDto } from '@/modules/messages/dto/create-message.dto';
 
 @WebSocketGateway({
   cors: {

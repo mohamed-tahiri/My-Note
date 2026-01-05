@@ -1,3 +1,5 @@
+import { Note } from '@/modules/notes/entities/note.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,8 +8,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Note } from '../../notes/entities/note.entity';
 
 @Entity()
 export class Task {

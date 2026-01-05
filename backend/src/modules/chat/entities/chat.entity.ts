@@ -1,3 +1,5 @@
+import { Message } from '@/modules/messages/entities/message.entity';
+import { User } from '@/modules/users/entities/user.entity';
 import {
   CreateDateColumn,
   Entity,
@@ -7,8 +9,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Message } from '../../messages/entities/message.entity';
 
 @Entity()
 export class Chat {
