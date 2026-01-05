@@ -3,14 +3,37 @@ import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import eslintImport from 'eslint-plugin-import';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs'],
+    ignores: ['eslint.config.mjs', 'dist/**'],
   },
+
+  // ESLint base
   eslint.configs.recommended,
+
+  // TypeScript rules (type-checked)
   ...tseslint.configs.recommendedTypeChecked,
+
+  // Prettier
   eslintPluginPrettierRecommended,
+
+  // Import plugin (pour @/)
+  {
+    plugins: {
+      import: eslintImport,
+    },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          project: './tsconfig.json',
+        },
+      },
+    },
+  },
+
+  // Language options
   {
     languageOptions: {
       globals: {
@@ -20,18 +43,27 @@ export default tseslint.config(
       sourceType: 'commonjs',
       parserOptions: {
         projectService: true,
-        // @ts-ignore
         tsconfigRootDir: import.meta.dirname,
       },
     },
   },
+
+  // Rules
   {
     rules: {
-      "@typescript-eslint/no-unsafe-assignment": "error",
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
+      // Sécurité TypeScript
+      '@typescript-eslint/no-unsafe-assignment': 'error',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      '@typescript-eslint/no-floating-promises': 'warn',
+
+      // Autorisé (souvent nécessaire en NestJS)
+      '@typescript-eslint/no-explicit-any': 'off',
+
+      // Imports
+      'import/no-unresolved': 'error',
+
+      // Prettier
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
   },
 );

@@ -16,11 +16,12 @@ jobs:
           node-version: '20'
       - run: |
           cd backend
-          npm install
-          npm run build
+          pnpm install
+          pnpm run build
       - run: |
           cd frontend
-          npm install
-          npm run build
-      # Docker build/push and k8s deploy steps go here
+          pnpm install
+          pnpm run build
+
+
 
