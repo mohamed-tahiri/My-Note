@@ -25,12 +25,8 @@ export default function NotesPage() {
 
   const loadNotes = async () => {
     try {
-      logger.log(user?.id);
-
       if (!user?.id) return;
       const res = await getAllByUser(user.id);
-      logger.log(res);
-
       setNotes(res.data);
     } catch (error) {
       logger.error('Failed to load notes', error);

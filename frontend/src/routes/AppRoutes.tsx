@@ -1,6 +1,4 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Box, Typography, Button } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
 
 import NotesPage from '../pages/NotesPage';
 import TasksPage from '../pages/TasksPage';
@@ -9,6 +7,8 @@ import NoteDetailPage from '../pages/NoteDetailPage';
 import LoginPage from '../pages/LoginPage';
 import Layout from '../components/layout/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute'; // Import du composant
+import { NotFound } from '@/components/ui/NotFound';
+import ProfilePage from '@/pages/ProfilePage';
 
 export default function AppRoutes() {
   return (
@@ -28,26 +28,9 @@ export default function AppRoutes() {
         <Route path="/notes/:id" element={<NoteDetailPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Route>
-
-      <Route path="*" element={
-        <Box sx={{ 
-          minHeight: '80vh', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          textAlign: 'center' 
-        }}>
-          <Typography variant="h4" sx={{ mb: 1 }}>404</Typography>
-          <Typography variant="subtitle2" sx={{ mb: 3 }}>
-            La page que vous cherchez n'existe pas.
-          </Typography>
-          <Button variant="contained" component={RouterLink} to="/">
-            Retourner à l'accueil
-          </Button>
-        </Box>
-      } />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
