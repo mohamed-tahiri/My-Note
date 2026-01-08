@@ -1,7 +1,7 @@
 
 import type { AuthResponse, LoginDto } from '@/types/auth';
 import api from './api';
-import type { User } from '@/types/user';
+import type { UpdateUserDto, User } from '@/types/user';
 
 /**
  * Identifie l'utilisateur et initialise la session
@@ -33,4 +33,12 @@ export const logout = async (): Promise<void> => {
 export const getCurrentUser = async (): Promise<User> => {
   const { data } = await api.get<User>('/auth/me');
   return data;
+};
+
+/**
+ * Met à jour le profil utilisateur
+ */
+export const updateProfile = async (id: number, data: UpdateUserDto): Promise<User> => {
+  const response = await api.patch<User>(`/users/${id}`, data);
+  return response.data;
 };

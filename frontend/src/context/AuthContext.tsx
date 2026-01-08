@@ -1,5 +1,6 @@
 import { createContext } from 'react';
-import type { User, LoginDto } from '@/types/auth';
+import type { LoginDto } from '@/types/auth';
+import type { User } from '@/types/user';
 
 export interface AuthContextType {
   user: User | null;
@@ -7,6 +8,7 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (credentials: LoginDto) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserInfo: (newData: User) => void;
 }
 
 // On exporte uniquement l'objet Context
