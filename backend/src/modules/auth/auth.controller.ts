@@ -42,7 +42,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@CurrentUser() user: User, @Res({ passthrough: true }) res: Response) {
-    console.log('Logout user ID:', user);
     return this.authService.logout(user.id, res);
   }
 
