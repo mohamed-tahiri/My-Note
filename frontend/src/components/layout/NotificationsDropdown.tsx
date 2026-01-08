@@ -1,46 +1,58 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Socket } from 'socket.io-client';
 import type { Notification } from '@/types/notification';
 import { getByUserId, markAsRead } from '@/api/notificationsService';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { 
+  Box, IconButton, Badge, Menu, Typography, 
+  List, ListItem, ListItemText, Divider, CircularProgress 
+} from '@mui/material';
 import { logger } from '@/utils/logger';
 
 interface NotificationsDropdownProps {
   socket: Socket;
-  userId: number;
+  userId: string | number;
 }
 
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, userId }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   const loadNotifications = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const res = await getByUserId(userId);
+      const res = await getByUserId(Number(userId));
       setNotifications(res.data);
     } catch (err) {
       logger.error('Erreur lors du chargement des notifications:', err);
+    } finally {
+      setIsLoading(false);
     }
   }, [userId]);
 
   useEffect(() => {
-    const initializeNotes = async () => {
-      await loadNotifications();
-    };
-
-    initializeNotes();
+    loadNotifications();
 
     const handleNewNotif = (notif: Notification) => {
       setNotifications(prev => [notif, ...prev]);
     };
 
     socket.on('notification', handleNewNotif);
-
     return () => {
       socket.off('notification', handleNewNotif);
     };
   }, [loadNotifications, socket]);
+
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const markAsReadNoti = async (id: number) => {
     try {
@@ -53,75 +65,94 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
     }
   };
 
-  // === Gestion clic en dehors ===
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [open]);
-
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="relative p-2 rounded hover:bg-indigo-50 transition-colors"
-        aria-label="Notifications"
+    <Box>
+      <IconButton 
+        onClick={handleOpen} 
+        size="large"
+        sx={{ color: 'primary.main' }}
       >
-        <NotificationsIcon style={{ color: '#1e293b' }} />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
-            {unreadCount}
-          </span>
-        )}
-      </button>
+        <Badge 
+          badgeContent={unreadCount} 
+          color="success" // Utilise le vert #10B981 de votre thème
+          sx={{ '& .MuiBadge-badge': { fontWeight: 700, fontSize: '0.65rem' } }}
+        >
+          <NotificationsIcon />
+        </Badge>
+      </IconButton>
 
-      {open && (
-        <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto z-50">
-          <div className="px-2 py-4 font-semibold text-sm text-indigo-700">
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            width: 360,
+            maxHeight: 480,
+            borderRadius: '12px',
+            boxShadow: '0px 10px 25px rgba(0,0,0,0.1)',
+            overflowY: 'auto'
+          }
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle1" fontWeight={700} color="primary.main">
             Notifications
-          </div>
+          </Typography>
+        </Box>
+        
+        <Divider />
 
-          {notifications.length === 0 ? (
-            <div className="p-4 text-gray-500 text-center text-sm">
-              Aucune notification
-            </div>
+        <List sx={{ p: 0 }}>
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : notifications.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Aucune notification
+              </Typography>
+            </Box>
           ) : (
-            notifications.map(notif => (
-              <div
+            notifications.map((notif) => (
+              <ListItem
                 key={notif.id}
                 onClick={() => !notif.read && markAsReadNoti(notif.id)}
-                className={`p-3 cursor-pointer transition-colors ${
-                  !notif.read
-                    ? 'bg-indigo-100 hover:bg-indigo-200 border-l-4 border-l-indigo-600'
-                    : 'hover:bg-gray-50'
-                }`}
+                sx={{
+                  cursor: 'pointer',
+                  borderLeft: !notif.read ? '4px solid' : 'none',
+                  borderColor: 'success.main',
+                  bgcolor: !notif.read ? 'success.light' : 'transparent',
+                  '&:hover': { bgcolor: !notif.read ? 'success.light' : 'action.hover' },
+                  transition: 'all 0.2s',
+                  py: 1.5
+                }}
               >
-                <p className={`text-sm ${!notif.read ? 'font-semibold text-indigo-900' : 'text-gray-700'}`}>
-                  {notif.content}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-1 uppercase font-medium">
-                  {new Date(notif.createdAt).toLocaleString()}
-                </p>
-              </div>
+                <ListItemText
+                  primary={notif.content}
+                  secondary={new Date(notif.createdAt).toLocaleString()}
+                  primaryTypographyProps={{
+                    variant: 'body2',
+                    fontWeight: !notif.read ? 700 : 400,
+                    color: !notif.read ? 'primary.main' : 'text.primary',
+                  }}
+                  secondaryTypographyProps={{
+                    variant: 'caption',
+                    sx: { mt: 0.5, display: 'block', textTransform: 'uppercase' }
+                  }}
+                />
+              </ListItem>
             ))
           )}
-        </div>
-      )}
-    </div>
+        </List>
+      </Menu>
+    </Box>
   );
 };
 

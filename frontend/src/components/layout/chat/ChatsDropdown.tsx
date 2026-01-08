@@ -1,304 +1,151 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useState } from 'react';
+import { 
+  Box, IconButton, Badge, Menu, Typography, 
+  List, ListItem, ListItemAvatar, Avatar, ListItemText, 
+  Divider, Tooltip 
+} from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import PersonIcon from '@mui/icons-material/Person';
+import { useNavigate } from 'react-router-dom';
 
-const ChatsDropdown: React.FC = () => {
-  const [open, setOpen] = useState(false);
+// Structure de données typée pour vos messages
+interface ChatPreview {
+  id: string | number;
+  name: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: boolean;
+}
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+export default function ChatsDropdown() {
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
+  // Exemple de données (À lier à votre State/Socket plus tard)
+  const [chats] = useState<ChatPreview[]>([
+    { id: 1, name: 'Jean Dupont', lastMessage: 'On se voit demain pour la note ?', timestamp: '10:30', unread: true },
+    { id: 2, name: 'Marie Courtois', lastMessage: 'Merci pour le partage !', timestamp: 'Hier', unread: false },
+    { id: 3, name: 'Groupe Projet', lastMessage: 'Le compte-rendu est prêt.', timestamp: 'Lun', unread: false },
+  ]);
 
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [open]);
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const unreadCount = chats.filter(c => c.unread).length;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Trigger */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="relative p-2 rounded hover:bg-indigo-50 transition"
-        aria-label="Chat"
+    <Box>
+      <Tooltip title="Messages">
+        <IconButton 
+          onClick={handleOpen} 
+          size="large" 
+          sx={{ color: 'primary.main' }}
+        >
+          <Badge 
+            badgeContent={unreadCount} 
+            color="success"
+            sx={{ '& .MuiBadge-badge': { fontWeight: 700, fontSize: '0.65rem' } }}
+          >
+            <ChatIcon />
+          </Badge>
+        </IconButton>
+      </Tooltip>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        PaperProps={{
+          sx: {
+            mt: 1.5,
+            width: 360,
+            maxHeight: 480,
+            borderRadius: '12px',
+            boxShadow: '0px 10px 25px rgba(0,0,0,0.1)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <ChatIcon className="text-slate-800" />   
-      </button>
-
-      {/* Chat window */}
-      {open && (
-        <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded shadow-lg max-h-96 overflow-y-auto z-50">
-          
-          {/* Header */}
-          <div className="px-2 py-4 font-semibold text-sm text-indigo-700">
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle1" fontWeight={700} color="primary.main">
             Messages
-          </div>
+          </Typography>
+        </Box>
+        
+        <Divider />
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 bg-gray-50">
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer transition border-b border-indigo-100">
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white">
-                <PersonIcon />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    Chat Name
-                  </p>
-                  <span className="text-[10px] text-gray-400">
-                    {new Date().toLocaleTimeString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  Last message preview...
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        <List sx={{ p: 0, bgcolor: 'background.paper' }}>
+          {chats.length === 0 ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Aucun message récent
+              </Typography>
+            </Box>
+          ) : (
+            chats.map((chat) => (
+              <React.Fragment key={chat.id}>
+                <ListItem
+                  onClick={() => {
+                    navigate(`/chats/${chat.id}`);
+                    handleClose();
+                  }}
+                  sx={{
+                    cursor: 'pointer',
+                    py: 1.5,
+                    px: 2,
+                    '&:hover': { bgcolor: 'background.default' },
+                    transition: 'background-color 0.2s',
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Badge
+                      overlap="circular"
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      variant="dot"
+                      invisible={!chat.unread}
+                      sx={{ '& .MuiBadge-badge': { bgcolor: 'success.main' } }}
+                    >
+                      <Avatar sx={{ bgcolor: 'primary.light' }}>
+                        <PersonIcon />
+                      </Avatar>
+                    </Badge>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={chat.name}
+                    secondary={chat.lastMessage}
+                    primaryTypographyProps={{
+                      variant: 'body2',
+                      fontWeight: chat.unread ? 700 : 500,
+                      color: 'primary.main',
+                      noWrap: true
+                    }}
+                    secondaryTypographyProps={{
+                      variant: 'caption',
+                      color: 'text.secondary',
+                      noWrap: true,
+                      sx: { display: 'block', mt: 0.2 }
+                    }}
+                  />
+                  <Box sx={{ ml: 1, textAlign: 'right', minWidth: 50 }}>
+                    <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem' }}>
+                      {chat.timestamp}
+                    </Typography>
+                  </Box>
+                </ListItem>
+                <Divider component="li" sx={{ mx: 2, opacity: 0.6 }} />
+              </React.Fragment>
+            ))
+          )}
+        </List>
+      </Menu>
+    </Box>
   );
-};
-
-export default ChatsDropdown;
+}
