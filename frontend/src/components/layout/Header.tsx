@@ -1,4 +1,4 @@
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link, Link as RouterLink, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { 
   Box, Typography, IconButton, Avatar, 
@@ -43,13 +43,18 @@ export default function Header() {
   };
 
   return (
-    <header style={{ 
-      backgroundColor: '#FFFFFF', 
-      borderBottom: '1px solid #E2E8F0',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1100 
-    }}>
+    <Box 
+      component="header" 
+      sx={{ 
+        bgcolor: 'background.paper',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1100,
+        // Pas de backgroundColor hardcoded ici
+      }}
+    >
       <Box sx={{ maxWidth: '1200px', mx: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.5 }}>
         
         {/* Logo */}
@@ -121,9 +126,66 @@ export default function Header() {
               sx: { mt: 1.5, minWidth: 200, borderRadius: '12px', boxShadow: '0px 8px 16px rgba(0,0,0,0.1)' }
             }}
           >
-            <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="subtitle2" noWrap>{user?.email || 'Utilisateur'}</Typography>
-              <Typography variant="caption" color="text.secondary" noWrap>{user?.email}</Typography>
+            <Box 
+              component={Link} 
+              to="/profile" 
+              sx={{ 
+                px: 2.5, 
+                py: 2, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1.5,
+                textDecoration: 'none', 
+                color: 'inherit',
+                transition: 'background-color 0.2s',
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                }
+              }}
+            >
+              {/* Avatar avec fallback sur initiales */}
+              <Avatar 
+                src={user?.avatarUrl} 
+                sx={{ 
+                  width: 40, 
+                  height: 40, 
+                  fontSize: '0.9rem', 
+                  fontWeight: 700,
+                  bgcolor: 'primary.main',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.15)'
+                }}
+              >
+                {user?.firstName?.charAt(0) || user?.email.charAt(0).toUpperCase()}
+              </Avatar>
+
+              {/* Textes : Nom et Email */}
+              <Box sx={{ overflow: 'hidden', flex: 1 }}>
+                <Typography 
+                  variant="subtitle2" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    lineHeight: 1.2, 
+                    color: 'text.primary',
+                    display: 'block' 
+                  }} 
+                  noWrap
+                >
+                  {user?.firstName && user?.lastName 
+                    ? `${user.firstName} ${user.lastName}` 
+                    : user?.firstName || 'Utilisateur'}
+                </Typography>
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: 'text.disabled', 
+                    display: 'block',
+                    fontSize: '0.75rem' 
+                  }} 
+                  noWrap
+                >
+                  {user?.email}
+                </Typography>
+              </Box>
             </Box>
             <Divider />
             
@@ -136,6 +198,6 @@ export default function Header() {
           </Menu>
         </Box>
       </Box>
-    </header>
+    </Box>
   );
 }
