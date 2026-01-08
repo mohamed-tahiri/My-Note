@@ -1,11 +1,17 @@
-import { api } from './api';
 import type { CreateNoteDto, UpdateNoteDto } from '@/types/note';
+import api from './api';
 
 /**
  * Récupère toutes les notes.
  * @returns Une promesse contenant la liste des notes
  */
 export const getAll = () => api.get('/notes');
+
+/**
+ * Récupère toutes les notes.
+ * @returns Une promesse contenant la liste des notes
+ */
+export const getAllByUser = (idUser: number) => api.get(`/notes/${idUser}/user`);
 
 /**
  * Récupère une note par son ID.

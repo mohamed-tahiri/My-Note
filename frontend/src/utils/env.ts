@@ -1,4 +1,7 @@
+import { API_URL, API_URL_SOCKET, NODE_ENV } from "@/constants/api";
+
 export const env = {
-  apiUrl: import.meta.env.VITE_API_URL,
-  nodeEnv: import.meta.env.VITE_NODE_ENV,
+  apiUrl: API_URL,
+  apiSocket: API_URL_SOCKET,
+  nodeEnv: NODE_ENV,
 } as const;

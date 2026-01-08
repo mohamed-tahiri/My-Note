@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { Notification } from '@/types/notification';
+import api from './api';
 
 /**
  * Récupère toutes les notifications d’un utilisateur.

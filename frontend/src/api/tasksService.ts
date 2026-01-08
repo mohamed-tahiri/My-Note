@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { CreateTaskDto, UpdateTaskDto } from '@/types/task';
+import api from './api';
 
 /**
  * Récupère toutes les tâches.

@@ -1,5 +1,5 @@
 import type { CreateAppointmentDto, UpdateAppointmentDto } from '@/types/appointment';
-import { api } from './api';
+import api from './api';
 
 /**
  * Récupère tous les rendez-vous.

@@ -57,12 +57,12 @@ export class AuthService {
 
     const access_token = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_SECRET as string,
-      expiresIn: '15m',
+      expiresIn: '1m',
     });
 
     const refresh_token = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET as string,
-      expiresIn: '7d',
+      expiresIn: `7d`,
     });
 
     return { access_token, refresh_token };
@@ -80,8 +80,8 @@ export class AuthService {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/', // Attention: '/' permet l'accès sur tout le domaine
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 }

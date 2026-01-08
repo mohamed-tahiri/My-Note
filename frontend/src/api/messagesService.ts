@@ -1,5 +1,5 @@
-import { api } from './api';
 import type { CreateMessageDto, UpdateMessageDto } from '@/types/message';
+import api from './api';
 
 /**
  * Récupère tous les messages d’un chat donné.

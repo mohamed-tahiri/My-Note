@@ -6,9 +6,7 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <div className="min-h-screen bg-gray-100">
-          <AppRoutes />
-        </div>
+        <AppRoutes />
       </BrowserRouter>
     </ErrorBoundary>
   )
