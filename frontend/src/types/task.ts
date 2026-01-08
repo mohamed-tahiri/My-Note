@@ -3,6 +3,7 @@ export interface Task {
   title: string;
   description: string;
   assigneeId: number;
+  status: string;
   relatedNoteId?: number;
   createdAt: string;
   updatedAt: string;

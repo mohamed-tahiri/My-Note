@@ -1,11 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Box, 
+  Typography, 
+  IconButton, 
+  Paper, 
+  Divider, 
+  Stack, 
+  CircularProgress, 
+  Button,
+  Breadcrumbs,
+  Link,
+  Chip
+} from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+
 import type { Note } from '@/types/note';
 import type { Task } from '@/types/task';
 import { getById } from '@/api/notesService';
 import { getTasksByNote } from '@/api/tasksService';
 import { NoteTasksList } from '@/components/notes/NoteTasksList';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { logger } from '@/utils/logger';
 
 export default function NoteDetailPage() {
@@ -26,7 +41,7 @@ export default function NoteDetailPage() {
       setNote(res.data);
     } catch (err) {
       logger.error(err);
-      setError('Failed to load note.');
+      setError('Impossible de charger la note.');
     } finally {
       setLoading(false);
     }
@@ -51,37 +66,112 @@ export default function NoteDetailPage() {
     loadTasks(noteId);
   }, [id]);
 
-  if (loading) return <div className="p-4">Loading note...</div>;
-  if (error) return <div className="p-4 text-red-600">{error}</div>;
-  if (!note) return <div className="p-4">Note not found</div>;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error || !note) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 10 }}>
+        <Typography color="error">{error || 'Note introuvable'}</Typography>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/notes')} sx={{ mt: 2 }}>
+          Retour aux notes
+        </Button>
+      </Box>
+    );
+  }
 
   return (
-    <div className="space-y-6 p-4">
-      {/* Header / Note Details */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{note.title}</h1>
-          <button
-            onClick={() => navigate('/notes')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded px-3 py-2"
-          >
-            <ArrowBackIcon fontSize="medium" />
-          </button>
-        </div>
-        <p className="text-gray-700 whitespace-pre-line">{note.content}</p>
-        <div className="mt-2 text-sm text-gray-500 space-y-1">
-          <p>Created at: {new Date(note.createdAt).toLocaleString()}</p>
-          <p>Updated at: {new Date(note.updatedAt).toLocaleString()}</p>
-        </div>
-      </section>
+    <Box>
+      <Breadcrumbs sx={{ mb: 3 }}>
+        <Link 
+          component="button" 
+          onClick={() => navigate('/notes')}
+          underline="hover" 
+          color="inherit"
+          sx={{ display: 'flex', alignItems: 'center', fontSize: '0.875rem' }}
+        >
+          Notes
+        </Link>
+        <Typography color="text.primary" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
+          Détails
+        </Typography>
+      </Breadcrumbs>
 
-      {/* Tasks Section */}
-      <NoteTasksList
-        note={note}
-        tasks={tasks}
-        tasksLoading={tasksLoading}
-        reloadTasks={() => loadTasks(note.id)}
-      />
-    </div>
+      {/* Header Action Bar */}
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 4 }}>
+        <Box>
+          <Typography variant="h4" gutterBottom sx={{ fontWeight: 800 }}>
+            {note.title}
+          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Chip 
+              icon={<CalendarTodayIcon sx={{ fontSize: '1rem !important' }} />} 
+              label={`Créée le ${new Date(note.createdAt).toLocaleDateString()}`}
+              size="small"
+              variant="outlined"
+              sx={{ borderRadius: '6px' }}
+            />
+          </Stack>
+        </Box>
+        <IconButton 
+          onClick={() => navigate('/notes')}
+          sx={{ bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
+        >
+          <ArrowBackIcon />
+        </IconButton>
+      </Stack>
+
+      <Stack spacing={4}>
+        {/* Note Content Section */}
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4, 
+            borderRadius: '16px', 
+            border: '1px solid', 
+            borderColor: 'divider',
+            bgcolor: 'background.paper'
+          }}
+        >
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              whiteSpace: 'pre-line', 
+              color: 'text.primary', 
+              lineHeight: 1.8,
+              fontSize: '1.05rem' 
+            }}
+          >
+            {note.content}
+          </Typography>
+          
+          <Divider sx={{ my: 3 }} />
+          
+          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+            Dernière mise à jour : {new Date(note.updatedAt).toLocaleString()}
+          </Typography>
+        </Paper>
+
+        {/* Tasks Section */}
+        <Box>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+            Tâches associées
+            {tasks.length > 0 && <Chip label={tasks.length} size="small" color="primary" />}
+          </Typography>
+          
+          <NoteTasksList
+            note={note}
+            tasks={tasks}
+            tasksLoading={tasksLoading}
+            reloadTasks={() => loadTasks(note.id)}
+          />
+        </Box>
+      </Stack>
+    </Box>
   );
 }

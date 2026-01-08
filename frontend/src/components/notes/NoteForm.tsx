@@ -1,9 +1,26 @@
-import { useEffect, useState } from 'react';
-import type { CreateNoteDto, Note } from '../../types/note';
+import React, { useEffect, useEffectEvent, useState } from 'react';
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+  IconButton,
+  Typography,
+  Box,
+  Stack,
+  MenuItem,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { useAuth } from '@/hooks/useAuth';
+import type { CreateNoteDto, Note, UpdateNoteDto } from '@/types/note';
+import { logger } from '@/utils/logger';
+import { NotePriority } from '@/enums/note';
 
 interface Props {
   isOpen: boolean;
-  onSubmit: (data: CreateNoteDto, id?: number) => void;
+  onSubmit: (data: CreateNoteDto) => void;
   editingNote?: Note;
   onClose: () => void;
 }
@@ -14,21 +31,34 @@ export function NoteFormModal({
   editingNote,
   onClose,
 }: Props) {
-  const [formData, setFormData] = useState({
+  const { user } = useAuth();
+
+  // Initialisation avec le champ priority par défaut à 'low'
+  const [formData, setFormData] = useState<{
+    title: string;
+    content: string;
+    priority: NotePriority;
+  }>({
     title: '',
     content: '',
+    priority: NotePriority.LOW,
   });
 
-  // Sync when editing
+  const updateDate = useEffectEvent((note: UpdateNoteDto) => {
+    setFormData({
+      title: note.title ?? '', 
+      content: note.content ?? '',
+      priority: note.priority ?? NotePriority.LOW,
+    });
+  });
+
   useEffect(() => {
+    if (!isOpen) return;
+
     if (editingNote) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFormData({
-        title: editingNote.title,
-        content: editingNote.content,
-      });
+      updateDate(editingNote);
     } else {
-      setFormData({ title: '', content: '' });
+      updateDate({ title: '', content: '', priority: NotePriority.LOW });
     }
   }, [editingNote, isOpen]);
 
@@ -41,83 +71,122 @@ export function NoteFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.content) return;
+    
+    if (!formData.title.trim() || !formData.content.trim()) return;
 
-    onSubmit(
-      { ...formData, userId: 1 },
-      editingNote?.id
-    );
+    const noteData: CreateNoteDto = {
+      ...formData,
+      userId: user?.id ? Number(user.id) : 0
+    };
 
+    logger.log('Saving note data:', noteData);
+
+    onSubmit(noteData);
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 h-[100vh] z-50 flex items-center justify-center">
-      
-      {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/30"
-        onClick={onClose}
-      />
+    <Dialog 
+      open={isOpen} 
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: { 
+            borderRadius: '16px', 
+            p: 1,
+            backgroundImage: 'none'
+        }
+      }}
+    >
+      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h6" fontWeight={800} color="primary.main">
+          {editingNote ? 'Modifier la note' : 'Nouvelle note'}
+        </Typography>
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{ color: 'text.secondary', '&:hover': { bgcolor: 'background.default' } }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-lg rounded-lg bg-white shadow-lg">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <h2 className="text-lg font-semibold">
-            {editingNote ? 'Edit Note' : 'Create Note'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+      <Box component="form" onSubmit={handleSubmit} noValidate>
+        <DialogContent dividers sx={{ borderBottom: 'none', py: 3 }}>
+          <Stack spacing={3}>
+            {/* Champ Titre */}
+            <TextField
+              name="title"
+              label="Titre de la note"
+              placeholder="Ex: Liste de courses, Idées de voyage..."
+              fullWidth
+              value={formData.title}
+              onChange={handleChange}
+              required
+              autoFocus
+              variant="outlined"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            />
+
+            {/* Champ Priorité (Select) */}
+            <TextField
+              select
+              name="priority"
+              label="Priorité"
+              value={formData.priority}
+              onChange={handleChange}
+              fullWidth
+              variant="outlined"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            >
+              <MenuItem value={NotePriority.HIGH}>Haute (Important)</MenuItem>
+              <MenuItem value={NotePriority.MEDIUM}>Moyenne</MenuItem>
+              <MenuItem value={NotePriority.LOW}>Basse (Basique)</MenuItem>
+            </TextField>
+
+            {/* Champ Contenu */}
+            <TextField
+              name="content"
+              label="Contenu"
+              placeholder="Détaillez votre pensée ici..."
+              fullWidth
+              multiline
+              rows={6}
+              value={formData.content}
+              onChange={handleChange}
+              required
+              variant="outlined"
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            />
+          </Stack>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
+          <Button 
+            onClick={onClose} 
+            color="inherit" 
+            sx={{ fontWeight: 600, textTransform: 'none', color: 'text.secondary', px: 3 }}
           >
-            ✕
-          </button>
-        </div>
-
-        {/* Body */}
-        <form onSubmit={handleSubmit} className="space-y-4 p-4">
-          <input
-            name="title"
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-          />
-
-          <textarea
-            name="content"
-            rows={5}
-            className="w-full rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Content"
-            value={formData.content}
-            onChange={handleChange}
-            required
-          />
-
-          {/* Footer */}
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="rounded bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
-            >
-              {editingNote ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            Annuler
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            disableElevation
+            sx={{ 
+              fontWeight: 700, 
+              textTransform: 'none', 
+              px: 4,
+              borderRadius: '10px',
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.light' }
+            }}
+          >
+            {editingNote ? 'Mettre à jour' : 'Enregistrer'}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
   );
 }

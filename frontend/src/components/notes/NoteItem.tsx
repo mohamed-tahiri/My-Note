@@ -1,7 +1,16 @@
-import { Link } from 'react-router-dom';
-import type { Note } from '../../types/note';
+import { Link as RouterLink } from 'react-router-dom';
+import { 
+  Card, 
+  CardContent, 
+  Typography, 
+  CardActions, 
+  IconButton, 
+  Box,
+  Tooltip
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import type { Note } from '../../types/note';
 
 interface Props {
   note: Note;
@@ -11,40 +20,91 @@ interface Props {
 
 export function NoteItem({ note, onEdit, onDelete }: Props) {
   return (
-    <div className="flex  items-center justify-between bg-indigo-50 hover:bg-indigo-100 border-l-4 border-l-indigo-600 p-4 shadow-sm hover:shadow-md transition">
-      
-      {/* Zone cliquable */}
-      <Link to={`/notes/${note.id}`} className="block">
-        <h3 className="font-semibold text-lg text-gray-800">
+    <Card 
+      sx={{ 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0px 12px 24px rgba(15, 23, 42, 0.08)',
+          borderColor: 'primary.light'
+        },
+        position: 'relative',
+        borderLeft: '4px solid',
+        borderColor: 'primary.main' // Rappel discret de votre couleur Slate
+      }}
+    >
+      <CardContent 
+        component={RouterLink} 
+        to={`/notes/${note.id}`}
+        sx={{ 
+          flexGrow: 1, 
+          textDecoration: 'none', 
+          color: 'inherit',
+          pb: 1
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          component="h3" 
+          sx={{ 
+            fontWeight: 700, 
+            mb: 1, 
+            color: 'primary.main',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}
+        >
           {note.title}
-        </h3>
-        <p className="text-gray-600 mt-1 line-clamp-2">
+        </Typography>
+        
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          sx={{ 
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            lineHeight: 1.6
+          }}
+        >
           {note.content}
-        </p>
-      </Link>
+        </Typography>
+      </CardContent>
 
-      {/* Actions */}
-      <div className="flex justify-end gap-3 mt-4">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          className="text-sm text-indigo-600 cursor-pointer"
-        >
-          <EditIcon />
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="text-sm text-red-600 cursor-pointer"
-        >
-          <DeleteIcon />
-        </button>
-      </div>
-    </div>
+      <Box sx={{ px: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="caption" color="text.disabled">
+          {/* Formatage de date optionnel */}
+          {new Date().toLocaleDateString()} 
+        </Typography>
+        
+        <CardActions disableSpacing>
+          <Tooltip title="Modifier">
+            <IconButton 
+              size="small" 
+              onClick={(e) => { e.preventDefault(); onEdit(); }}
+              sx={{ color: 'primary.light', '&:hover': { color: 'primary.main', bgcolor: 'background.default' } }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="Supprimer">
+            <IconButton 
+              size="small" 
+              onClick={(e) => { e.preventDefault(); onDelete(); }}
+              sx={{ color: 'error.light', '&:hover': { color: 'error.main', bgcolor: 'error.light' + '20' } }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </CardActions>
+      </Box>
+    </Card>
   );
 }

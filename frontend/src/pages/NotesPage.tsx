@@ -1,32 +1,47 @@
 import { useEffect, useState } from 'react';
-import { getAll, create, update, deleteNote } from '@/api/notesService';
+import { 
+  Box, 
+  Typography, 
+  Fab, 
+  Stack, 
+  CircularProgress, 
+  Fade 
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+
+import { create, update, deleteNote, getAllByUser } from '@/api/notesService';
 import type { Note, CreateNoteDto } from '@/types/note';
 import { NotesList } from '@/components/notes/NotesList';
 import { NoteFormModal } from '@/components/notes/NoteForm';
-import AddIcon from '@mui/icons-material/Add';
 import { logger } from '@/utils/logger';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function NotesPage() {
+  const { user } = useAuth(); 
   const [notes, setNotes] = useState<Note[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingNote, setEditingNote] = useState<Note | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadNotes = async () => {
     try {
-      const res = await getAll();
+      logger.log(user?.id);
+
+      if (!user?.id) return;
+      const res = await getAllByUser(user.id);
+      logger.log(res);
+
       setNotes(res.data);
     } catch (error) {
       logger.error('Failed to load notes', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    const initializeNotes = async () => {
-      await loadNotes();
-    };
-    
-    initializeNotes();
-  }, []);
+    loadNotes();
+  }, [user?.id]);
 
   const handleCreateOrUpdate = async (data: CreateNoteDto) => {
     try {
@@ -35,7 +50,6 @@ export default function NotesPage() {
       } else {
         await create(data);
       }
-
       setIsModalOpen(false);
       setEditingNote(undefined);
       await loadNotes();
@@ -45,11 +59,13 @@ export default function NotesPage() {
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await deleteNote(id);
-      await loadNotes();
-    } catch (error) {
-      logger.error('Failed to delete note', error);
+    if (window.confirm('Voulez-vous vraiment supprimer cette note ?')) {
+      try {
+        await deleteNote(id);
+        await loadNotes();
+      } catch (error) {
+        logger.error('Failed to delete note', error);
+      }
     }
   };
 
@@ -63,37 +79,69 @@ export default function NotesPage() {
     setIsModalOpen(true);
   };
 
-  return (
-    <div className="space-y-6">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Notes</h1>
-        <button
-          onClick={handleCreate}
-          className="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-        >
-          <AddIcon fontSize="medium" />
-        </button>
-      </div>
+  const handleClose = () => {          
+    setIsModalOpen(false);
+    setEditingNote(undefined);
+  }
 
-      {/* Modal */}
+  return (
+    <Box sx={{ position: 'relative', pb: 8 }}>
+      {/* Header avec Titre Moderne */}
+      <Stack 
+        direction="row" 
+        justifyContent="space-between" 
+        alignItems="center" 
+        sx={{ mb: 4 }}
+      >
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Mes Notes
+          </Typography>
+          <Typography variant="subtitle2">
+            Gérez vos idées et vos projets personnels.
+          </Typography>
+        </Box>
+      </Stack>
+
+      {/* État de chargement ou Liste */}
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
+        <Fade in={!isLoading}>
+          <Box>
+            <NotesList
+              notes={notes}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </Box>
+        </Fade>
+      )}
+
+      {/* Modal Formulaire */}
       <NoteFormModal
         isOpen={isModalOpen}
         editingNote={editingNote}
         onSubmit={handleCreateOrUpdate}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingNote(undefined);
-        }}
+        onClose={handleClose}
       />
 
-      {/* Notes list */}
-      <NotesList
-        notes={notes}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-    </div>
+      {/* Bouton d'ajout Flottant (Design Moderne) */}
+      <Fab 
+        color="primary" 
+        aria-label="add" 
+        onClick={handleCreate}
+        sx={{ 
+          position: 'fixed', 
+          bottom: { xs: 80, md: 40 }, // Ajusté pour le footer mobile
+          right: { xs: 20, md: 40 },
+          boxShadow: '0px 4px 20px rgba(15, 23, 42, 0.3)'
+        }}
+      >
+        <AddIcon />
+      </Fab>
+    </Box>
   );
 }

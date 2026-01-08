@@ -1,46 +1,115 @@
-import type { Task } from "@/types/task";
+import { 
+  Box, 
+  Typography, 
+  IconButton, 
+  Checkbox, 
+  Stack, 
+  Tooltip 
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import type { Task } from "@/types/task";
 
 interface Props {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
+  onToggleStatus?: (task: Task) => void; // Optionnel : pour changer le statut
 }
 
-export function TaskItem({ task, onEdit, onDelete }: Props) {
+export function TaskItem({ task, onEdit, onDelete, onToggleStatus }: Props) {
+  const isDone = task.status === 'done'; 
+
   return (    
-    <div className="flex  items-center justify-between bg-indigo-50 hover:bg-indigo-100 border-l-4 border-l-indigo-600 p-4 shadow-sm hover:shadow-md transition">  
-      {/* Task info */}
-      <div>
-        <p className="font-medium text-gray-800">{task.title}</p>
-        {task.description && (
-          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
-        )}
-      </div>
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        p: 2,
+        transition: 'background-color 0.2s',
+        '&:hover': {
+          bgcolor: 'rgba(15, 23, 42, 0.02)', // Slate très léger au survol
+        }
+      }}
+    >  
+      <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ flex: 1 }}>
+        {/* Checkbox stylisée */}
+        <Checkbox
+          checked={isDone}
+          onChange={() => onToggleStatus?.(task)}
+          icon={<RadioButtonUncheckedIcon />}
+          checkedIcon={<CheckCircleIcon />}
+          sx={{
+            color: 'divider',
+            padding: 0,
+            mt: 0.3,
+            '&.Mui-checked': {
+              color: 'success.main',
+            },
+          }}
+        />
+
+        {/* Info de la tâche */}
+        <Box sx={{ flex: 1 }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              fontWeight: 600, 
+              color: isDone ? 'text.disabled' : 'primary.main',
+              textDecoration: isDone ? 'line-through' : 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            {task.title}
+          </Typography>
+          
+          {task.description && (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: 'text.secondary', 
+                mt: 0.5,
+                fontSize: '0.85rem',
+                opacity: isDone ? 0.6 : 1
+              }}
+            >
+              {task.description}
+            </Typography>
+          )}
+        </Box>
+      </Stack>
 
       {/* Actions */}
-      <div className="flex justify-end gap-3 mt-2">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(task);
-          }}
-          className="text-sm text-indigo-600 cursor-pointer"
-        >
-          <EditIcon />
-        </button>
+      <Stack direction="row" spacing={1}>
+        <Tooltip title="Modifier">
+          <IconButton 
+            size="small" 
+            onClick={() => onEdit(task)}
+            sx={{ 
+              color: 'primary.light',
+              '&:hover': { color: 'primary.main', bgcolor: 'primary.light' + '10' }
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(task);
-          }}
-          className="text-sm text-red-600 cursor-pointer"
-        >
-          <DeleteIcon />
-        </button>
-      </div>
-    </div>
+        <Tooltip title="Supprimer">
+          <IconButton 
+            size="small" 
+            onClick={() => onDelete(task)}
+            sx={{ 
+              color: 'error.light',
+              '&:hover': { color: 'error.main', bgcolor: 'error.light' + '10' }
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Box>
   );
 }
