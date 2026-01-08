@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { NotePriority } from '../enums/notePriority.enum';
 
 @Entity()
 export class Note {
@@ -19,6 +20,13 @@ export class Note {
 
   @Column()
   content: string;
+
+  @Column({
+    type: 'enum',
+    enum: NotePriority,
+    default: NotePriority.LOW,
+  })
+  priority: NotePriority;
 
   @ManyToOne(() => User, (user) => user.notes)
   @JoinColumn({ name: 'userId' })

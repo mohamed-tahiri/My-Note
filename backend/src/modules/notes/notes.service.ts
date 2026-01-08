@@ -5,6 +5,7 @@ import { Note } from './entities/note.entity';
 import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from '../users/entities/user.entity';
+import { NotePriority } from './enums/notePriority.enum';
 
 @Injectable()
 export class NotesService {
@@ -24,6 +25,7 @@ export class NotesService {
       title: dto.title,
       content: dto.content,
       user: user,
+      priority: dto.priority as NotePriority,
     });
     const saved = await this.noteRepository.save(note);
 
@@ -46,6 +48,7 @@ export class NotesService {
       title: dto.title,
       content: dto.content,
       user: user,
+      priority: dto.priority as NotePriority,
     });
 
     // Récupérer la note mise à jour
@@ -66,6 +69,19 @@ export class NotesService {
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async findAllByUser(userId: number): Promise<Note[]> {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
+
+    const notes = await this.noteRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return notes;
   }
 
   async findOne(id: number): Promise<Note> {

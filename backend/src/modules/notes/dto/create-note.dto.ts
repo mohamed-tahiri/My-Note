@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateNoteDto {
   @ApiProperty({
@@ -24,4 +24,16 @@ export class CreateNoteDto {
   })
   @IsInt()
   userId: number;
+
+  @ApiProperty({
+    description: 'Priority level of the note',
+    enum: ['high', 'medium', 'low'],
+    example: 'high',
+    default: 'low',
+  })
+  @IsNotEmpty()
+  @IsEnum(['high', 'medium', 'low'], {
+    message: 'Priority must be high, medium or low',
+  })
+  priority: string;
 }
