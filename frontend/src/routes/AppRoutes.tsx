@@ -9,6 +9,7 @@ import Layout from '../components/layout/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute'; // Import du composant
 import { NotFound } from '@/components/ui/NotFound';
 import ProfilePage from '@/pages/ProfilePage';
+import CalendarPage from '@/pages/CalendarPage';
 
 export default function AppRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function AppRoutes() {
         <Route path="/notes/:id" element={<NoteDetailPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
+        <Route path="/appointments/calendar" element={<CalendarPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<NotFound />} />
