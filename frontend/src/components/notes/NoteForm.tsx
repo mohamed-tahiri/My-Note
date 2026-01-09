@@ -15,7 +15,6 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateNoteDto, Note, UpdateNoteDto } from '@/types/note';
-import { logger } from '@/utils/logger';
 import { NotePriority } from '@/enums/note';
 
 interface Props {
@@ -78,8 +77,6 @@ export function NoteFormModal({
       ...formData,
       userId: user?.id ? Number(user.id) : 0
     };
-
-    logger.log('Saving note data:', noteData);
 
     onSubmit(noteData);
     onClose();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -15,6 +15,7 @@ import { NotesList } from '@/components/notes/NotesList';
 import { NoteFormModal } from '@/components/notes/NoteForm';
 import { logger } from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function NotesPage() {
   const { user } = useAuth(); 
@@ -22,8 +23,10 @@ export default function NotesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingNote, setEditingNote] = useState<Note | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     try {
       if (!user?.id) return;
       const res = await getAllByUser(user.id);
@@ -33,11 +36,11 @@ export default function NotesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     loadNotes();
-  }, [user?.id]);
+  }, [loadNotes]);
 
   const handleCreateOrUpdate = async (data: CreateNoteDto) => {
     try {
@@ -54,13 +57,20 @@ export default function NotesPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Voulez-vous vraiment supprimer cette note ?')) {
+
+  const openDeleteConfirm = (id: number) => {
+    setSelectedId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedId) {
       try {
-        await deleteNote(id);
+        await deleteNote(selectedId);
         await loadNotes();
+        setConfirmOpen(false);
       } catch (error) {
-        logger.error('Failed to delete note', error);
+        logger.error('Delete failed', error);
       }
     }
   };
@@ -110,11 +120,19 @@ export default function NotesPage() {
             <NotesList
               notes={notes}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={openDeleteConfirm}
             />
           </Box>
         </Fade>
       )}
+      
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        title="Confirmer la suppression"
+        description="Cette action est irréversible. Voulez-vous vraiment supprimer cet élément ?"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setConfirmOpen(false)}
+      />
 
       {/* Modal Formulaire */}
       <NoteFormModal

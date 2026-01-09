@@ -5,18 +5,19 @@ import {
   Button, 
   Stack, 
   CircularProgress, 
-  Paper,
-  Divider
+  Chip,
+  Fade
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import type { Note } from '@/types/note';
 import type { Task } from '@/types/task';
 import { TaskItem } from '../tasks/TaskItem';
 import { TaskModal } from '../tasks/TaskForm';
 import { logger } from '@/utils/logger';
 import { deleteTask } from '@/api/tasksService';
+import { EmptyState } from '../ui/EmptyState';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
 interface Props {
   note: Note;
@@ -28,19 +29,28 @@ interface Props {
 export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: Props) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
     setIsTaskModalOpen(true);
   };
 
-  const handleDelete = async (task: Task) => {
-    if (window.confirm('Supprimer cette tâche ?')) {
+
+  const openDeleteConfirm = (id: number) => {
+    setSelectedId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedId) {
       try {
-        await deleteTask(task.id);
+        await deleteTask(selectedId);
         reloadTasks();
-      } catch (err) {
-        logger.error(err);
+        setConfirmOpen(false);
+      } catch (error) {
+        logger.error('Delete failed', error);
       }
     }
   };
@@ -55,7 +65,8 @@ export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: Props)
         sx={{ mb: 2 }}
       >
         <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-          Tâches
+          Tâches associées
+          {tasks.length > 0 && <Chip sx={{ ml: 1 }} label={tasks.length}  size="small" color="primary" />}
         </Typography>
         <Button
           variant="contained"
@@ -76,6 +87,14 @@ export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: Props)
         </Button>
       </Stack>
 
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        title="Confirmer la suppression"
+        description="Cette action est irréversible. Voulez-vous vraiment supprimer cet élément ?"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setConfirmOpen(false)}
+      />
+
       <TaskModal
         key={editingTask?.id || 'new-task'} // Reset le state de la modal à chaque changement
         noteId={note.id}
@@ -84,43 +103,36 @@ export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: Props)
         onClose={() => setIsTaskModalOpen(false)}
         onSaved={reloadTasks}
       />
-
-      {/* Liste des tâches */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          borderRadius: '12px', 
-          border: tasks.length > 0 ? '1px solid' : 'none', 
-          borderColor: 'divider',
-          overflow: 'hidden'
-        }}
-      >
+      
         {tasksLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
             <CircularProgress size={24} />
           </Box>
         ) : tasks.length === 0 ? (
-          <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'background.default', borderRadius: '12px', border: '1px dashed', borderColor: 'divider' }}>
-            <AssignmentIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
-            <Typography variant="body2" color="text.secondary">
-              Aucune tâche associée à cette note.
-            </Typography>
-          </Box>
+          <EmptyState
+            icon={AssignmentTurnedInIcon}
+            title="Toutes les tâches sont terminées !"
+            description="Ou vous n'en avez pas encore créé pour cette catégorie."
+          />
         ) : (
-          <Box>
+          <Stack spacing={0}>
             {tasks.map((task, index) => (
-              <Box key={task.id}>
-                <TaskItem 
-                  task={task} 
-                  onEdit={handleEdit} 
-                  onDelete={handleDelete} 
-                />
-                {index < tasks.length - 1 && <Divider />}
-              </Box>
+              <Fade 
+                in={true} 
+                key={task.id} 
+                style={{ transitionDelay: `${index * 50}ms` }}
+              >
+                <Box sx={{ border: 'none', outline: 'none' }}> 
+                  <TaskItem
+                    task={task}
+                    onEdit={handleEdit}
+                    onDelete={openDeleteConfirm}
+                  />
+                </Box>
+              </Fade>
             ))}
-          </Box>
+          </Stack>
         )}
-      </Paper>
     </Box>
   );
 }

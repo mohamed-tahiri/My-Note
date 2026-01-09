@@ -158,19 +158,12 @@ export default function NoteDetailPage() {
         </Paper>
 
         {/* Tasks Section */}
-        <Box>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-            Tâches associées
-            {tasks.length > 0 && <Chip label={tasks.length} size="small" color="primary" />}
-          </Typography>
-          
-          <NoteTasksList
-            note={note}
-            tasks={tasks}
-            tasksLoading={tasksLoading}
-            reloadTasks={() => loadTasks(note.id)}
-          />
-        </Box>
+        <NoteTasksList
+          note={note}
+          tasks={tasks}
+          tasksLoading={tasksLoading}
+          reloadTasks={() => loadTasks(note.id)}
+        />
       </Stack>
     </Box>
   );
