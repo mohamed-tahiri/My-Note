@@ -1,47 +1,45 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsEnum,
+  IsOptional,
   IsNotEmpty,
   IsString,
   IsInt,
-  IsOptional,
   IsDateString,
+  IsArray,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { TaskStatus } from '../enums/taskstatus.enum';
 
 export class CreateTaskDto {
-  @ApiProperty({
-    description: 'Task title',
-    example: 'Finish backend API',
-  })
+  @ApiProperty({ example: 'Finish backend API' })
   @IsNotEmpty()
   @IsString()
   title: string;
 
-  @ApiProperty({
-    description: 'Task description',
-    example: 'Implement Swagger and database relations',
-  })
+  @ApiPropertyOptional({ example: 'Implement Swagger' })
+  @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
+
+  @ApiProperty({ enum: TaskStatus, default: TaskStatus.PENDING })
+  @IsEnum(TaskStatus)
+  @IsOptional()
+  status?: TaskStatus;
 
   @ApiProperty({
-    description: 'ID of the assigned user',
-    example: 2,
+    description: 'IDs of the assigned users',
+    example: [1, 2, 3],
   })
-  @IsInt()
-  assigneeId: number;
+  @IsArray()
+  @IsInt({ each: true })
+  assigneeIds: number[];
 
-  @ApiPropertyOptional({
-    description: 'Related note ID (optional)',
-    example: 5,
-  })
+  @ApiPropertyOptional({ example: 5 })
   @IsOptional()
   @IsInt()
   relatedNoteId?: number;
 
-  @ApiPropertyOptional({
-    description: 'Task due date (ISO format)',
-    example: '2025-01-10T18:00:00.000Z',
-  })
+  @ApiPropertyOptional({ example: '2026-01-10T18:00:00.000Z' })
   @IsOptional()
   @IsDateString()
   dueDate?: string;
