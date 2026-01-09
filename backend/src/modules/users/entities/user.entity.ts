@@ -46,7 +46,7 @@ export class User {
   @OneToMany(() => Message, (message) => message.sender)
   messages: Message[];
 
-  @OneToMany(() => Task, (task) => task.assignee)
+  @OneToMany(() => Task, (task) => task.assignees)
   tasks: Task[];
 
   @OneToMany(() => Appointment, (appointment) => appointment.user)
