@@ -1,49 +1,84 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { NotificationsService } from '../notifications.service';
 
 @Injectable()
 export class AppointmentListener {
   private readonly logger = new Logger(AppointmentListener.name);
 
+  constructor(private readonly notificationService: NotificationsService) {}
+
   @OnEvent('appointment.created')
-  handleAppointmentCreated(payload: {
+  async handleAppointmentCreated(payload: {
     appointmentId: number;
+    title: string; // Ajouté pour un message plus clair
     userId: number;
     assignedToId?: number;
   }) {
-    this.logger.log(`Appointment created: ${payload.appointmentId}`);
-    this.logger.log(`Created by user: ${payload.userId}`);
-    if (payload.assignedToId) {
-      this.logger.log(`Assigned to user: ${payload.assignedToId}`);
+    // Notification pour le créateur
+    await this.notificationService.create({
+      userId: payload.userId,
+      content: `Appointment "${payload.title}" created successfully.`,
+    });
+
+    // Notification pour la personne assignée
+    if (payload.assignedToId && payload.assignedToId !== payload.userId) {
+      await this.notificationService.create({
+        userId: payload.assignedToId,
+        content: `A new appointment "${payload.title}" has been assigned to you.`,
+      });
     }
-    // Ajouter notification réelle ici
   }
 
   @OnEvent('appointment.updated')
-  handleAppointmentUpdated(payload: {
+  async handleAppointmentUpdated(payload: {
     appointmentId: number;
+    title: string;
     userId: number;
     assignedToId?: number;
   }) {
-    this.logger.log(`Appointment updated: ${payload.appointmentId}`);
-    this.logger.log(`Updated by user: ${payload.userId}`);
-    if (payload.assignedToId) {
-      this.logger.log(`Assigned to user: ${payload.assignedToId}`);
+    this.logger.log(
+      `Processing update notification for appointment: ${payload.appointmentId}`,
+    );
+
+    // Notification au propriétaire/modificateur
+    await this.notificationService.create({
+      userId: payload.userId,
+      content: `Your appointment "${payload.title}" has been updated.`,
+    });
+
+    // Notification à la personne assignée si elle est différente
+    if (payload.assignedToId && payload.assignedToId !== payload.userId) {
+      await this.notificationService.create({
+        userId: payload.assignedToId,
+        content: `The appointment "${payload.title}" assigned to you has been modified.`,
+      });
     }
-    // Ajouter notification réelle ici
   }
 
   @OnEvent('appointment.deleted')
-  handleAppointmentDeleted(payload: {
+  async handleAppointmentDeleted(payload: {
     appointmentId: number;
+    title: string;
     userId: number;
     assignedToId?: number;
   }) {
-    this.logger.warn(`Appointment deleted: ${payload.appointmentId}`);
-    this.logger.warn(`Deleted by user: ${payload.userId}`);
-    if (payload.assignedToId) {
-      this.logger.warn(`Was assigned to user: ${payload.assignedToId}`);
+    this.logger.warn(
+      `Processing delete notification for appointment: ${payload.appointmentId}`,
+    );
+
+    // Notification au propriétaire
+    await this.notificationService.create({
+      userId: payload.userId,
+      content: `Appointment "${payload.title}" has been canceled/deleted.`,
+    });
+
+    // Notification à la personne qui était assignée
+    if (payload.assignedToId && payload.assignedToId !== payload.userId) {
+      await this.notificationService.create({
+        userId: payload.assignedToId,
+        content: `The appointment "${payload.title}" assigned to you has been canceled.`,
+      });
     }
-    // Ajouter notification réelle ici
   }
 }

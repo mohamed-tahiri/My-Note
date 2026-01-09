@@ -1,3 +1,4 @@
+import { Task } from '@/modules/tasks/entities/task.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import {
   Column,
@@ -7,6 +8,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
+// On définit l'union type pour la cohérence
+export type AppointmentType = 'Professional' | 'Personal' | 'Medical';
 
 @Entity()
 export class Appointment {
@@ -19,8 +23,21 @@ export class Appointment {
   @Column({ type: 'timestamp' })
   startAt: Date;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', nullable: true })
   endAt: Date;
+
+  @Column({ nullable: true })
+  location: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['Professional', 'Personal', 'Medical'],
+    default: 'Personal',
+  })
+  type: AppointmentType;
+
+  @ManyToOne(() => Task, (task) => task.appointments, { nullable: true })
+  task: Task;
 
   @ManyToOne(() => User, (user) => user.appointments)
   user: User;
