@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -16,6 +16,8 @@ import { TaskModal } from '@/components/tasks/TaskForm';
 import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/utils/logger';
 import type { Task } from '@/types/task';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -23,8 +25,10 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const loadTasks = async () => {
+  const loadTasks =  useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
     try {
@@ -35,19 +39,27 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     loadTasks();
-  }, [user?.id]);
+  }, [loadTasks]);
 
-  const handleDelete = async (task: Task) => {
-    if (window.confirm('Voulez-vous vraiment supprimer cette tâche ?')) {
+
+  const openDeleteConfirm = (id: number) => {
+    setSelectedId(id);
+    setConfirmOpen(true);
+  };
+
+
+  const handleConfirmDelete = async () => {
+    if (selectedId) {
       try {
-        await deleteTask(task.id);
+        await deleteTask(selectedId);
         await loadTasks();
+        setConfirmOpen(false);
       } catch (error) {
-        logger.error('Failed to delete task', error);
+        logger.error('Delete failed', error);
       }
     }
   };
@@ -97,37 +109,30 @@ export default function TasksPage() {
           <CircularProgress />
         </Box>
       ) : tasks.length === 0 ? (
-        <Fade in={true}>
-          <Box 
-            sx={{ 
-              textAlign: 'center', 
-              py: 10, 
-              bgcolor: 'background.paper', 
-              borderRadius: '16px',
-              border: '1px dashed',
-              borderColor: 'divider'
-            }}
-          >
-            <AssignmentTurnedInIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary">
-              Toutes les tâches sont terminées !
-            </Typography>
-            <Typography variant="body2" color="text.disabled">
-              Ou vous n'en avez pas encore créé.
-            </Typography>
-          </Box>
-        </Fade>
+        <EmptyState
+          icon={AssignmentTurnedInIcon}
+          title="Toutes les tâches sont terminées !"
+          description="Ou vous n'en avez pas encore créé pour cette catégorie."
+        />
       ) : (
         <Fade in={!loading}>
           <Box>
             <TaskList 
               tasks={tasks}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={openDeleteConfirm}
             />
           </Box>
         </Fade>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        title="Confirmer la suppression"
+        description="Cette action est irréversible. Voulez-vous vraiment supprimer cet élément ?"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setConfirmOpen(false)}
+      />
 
       {/* Bouton d'ajout flottant */}
       <Fab 

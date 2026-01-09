@@ -10,15 +10,23 @@ import {
   Typography,
   Box,
   Stack,
-  CircularProgress,
+  MenuItem,
+  Chip,
+  Avatar,
+  Checkbox,
+  ListItemText,
+  CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '@/hooks/useAuth';
 import { create, update } from '@/api/tasksService';
+import { getAll } from '@/api/userService'; // Assurez-vous d'avoir ce service
 import type { Task, CreateTaskDto, UpdateTaskDto } from '@/types/task';
+import type { User } from '@/types/user';
+import { TaskStatus, type TaskStatusType } from '@/enums/task';
 
 interface Props {
-  noteId: number;
+  noteId?: number;
   task?: Task | null;
   isOpen: boolean;
   onClose: () => void;
@@ -27,43 +35,69 @@ interface Props {
 
 export function TaskModal({ noteId, task, isOpen, onClose, onSaved }: Props) {
   const { user } = useAuth();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    status: TaskStatus.PENDING as TaskStatusType,
+    dueDate: '',
+    assigneeIds: [] as number[],
+  });
 
-  // Synchronisation des champs à l'ouverture
+  // 1. Charger la liste des utilisateurs pour la sélection
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await getAll();
+        setAvailableUsers(response.data);
+      } catch (error) {
+        console.error("Erreur chargement utilisateurs:", error);
+      }
+    };
+    if (isOpen) fetchUsers();
+  }, [isOpen]);
+
+  // 2. Synchronisation des données (Mode Création vs Edition)
   useEffect(() => {
     if (isOpen) {
-      setTitle(task?.title || '');
-      setDescription(task?.description || '');
+      setFormData({
+        title: task?.title || '',
+        description: task?.description || '',
+        status: (task?.status as TaskStatusType) || TaskStatus.PENDING,
+        dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '',
+        assigneeIds: task?.assignees?.map(u => u.id) || [user?.id].filter(Boolean) as number[],
+      });
     }
-  }, [isOpen, task]);
+  }, [isOpen, task, user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
-    
+    if (!formData.title.trim()) return;
+      
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : undefined,
+      };
+
       if (task) {
-        const data: UpdateTaskDto = { 
-          title: title.trim(), 
-          description: description.trim() 
-        };
-        await update(task.id, data);
+        // Pour l'update, le backend attend UpdateTaskDto (partiel)
+        await update(task.id, payload as UpdateTaskDto);
       } else {
-        const data: CreateTaskDto = { 
-          title: title.trim(), 
-          description: description.trim(), 
-          relatedNoteId: noteId,
-          assigneeId: user?.id ? Number(user.id) : 0 
-        };
-        await create(data);
+        // Pour la création, on lie la note et on passe les IDs
+        await create({ 
+          ...payload, 
+          relatedNoteId: noteId 
+        } as CreateTaskDto);
       }
+
       onSaved();
       onClose();
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de la tâche", error);
+      console.error("Erreur lors de la sauvegarde de la tâche:", error);
     } finally {
       setLoading(false);
     }
@@ -72,75 +106,121 @@ export function TaskModal({ noteId, task, isOpen, onClose, onSaved }: Props) {
   return (
     <Dialog 
       open={isOpen} 
-      onClose={onClose}
-      fullWidth
-      maxWidth="xs" // Plus étroit que la note pour différencier visuellement
-      PaperProps={{
-        sx: { borderRadius: '16px', p: 1 }
-      }}
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="sm" 
+      PaperProps={{ sx: { borderRadius: '20px', backgroundImage: 'none' } }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" fontWeight={800} color="primary.main">
           {task ? 'Modifier la tâche' : 'Nouvelle tâche'}
         </Typography>
-        <IconButton onClick={onClose} sx={{ color: 'text.secondary' }}>
-          <CloseIcon />
-        </IconButton>
+        <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
       </DialogTitle>
 
       <Box component="form" onSubmit={handleSubmit}>
-        <DialogContent dividers sx={{ borderBottom: 'none', py: 2 }}>
-          <Stack spacing={2.5}>
+        <DialogContent dividers sx={{ py: 3, borderBottom: 'none' }}>
+          <Stack spacing={3}>
+            
+            {/* Titre */}
             <TextField
-              label="Titre de la tâche"
-              placeholder="Faire les courses, appeler le client..."
+              label="Titre"
+              placeholder="Faire quoi ?"
               fullWidth
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
               required
-              autoFocus
-              variant="outlined"
               disabled={loading}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
 
+            {/* Multi-Select Assignés */}
             <TextField
-              label="Description (optionnel)"
-              placeholder="Ajouter des détails..."
+              select
+              label="Assigner à"
+              fullWidth
+              disabled={loading}
+              SelectProps={{
+                multiple: true,
+                value: formData.assigneeIds,
+                renderValue: (selected) => (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {(selected as number[]).map((id) => {
+                      const u = availableUsers.find(user => user.id === id);
+                      return (
+                        <Chip 
+                          key={id} 
+                          size="small"
+                          avatar={<Avatar src={u?.avatarUrl}>{u?.firstName?.charAt(0)}</Avatar>}
+                          label={u ? `${u.firstName} ${u.lastName}` : id} 
+                        />
+                      );
+                    })}
+                  </Box>
+                ),
+              }}
+              onChange={(e) => setFormData({...formData, assigneeIds: e.target.value as unknown as number[]})}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+            >
+              {availableUsers.map((u) => (
+                <MenuItem key={u.id} value={u.id}>
+                  <Checkbox checked={formData.assigneeIds.indexOf(u.id) > -1} />
+                  <Avatar src={u.avatarUrl} sx={{ width: 24, height: 24, mr: 1 }}>
+                    {u.firstName?.charAt(0)}
+                  </Avatar>
+                  <ListItemText primary={`${u.firstName} ${u.lastName}`} secondary={u.email} />
+                </MenuItem>
+              ))}
+            </TextField>
+
+            {/* Statut & Échéance */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                select
+                label="Statut"
+                fullWidth
+                value={formData.status}
+                onChange={(e) => setFormData({...formData, status: e.target.value as TaskStatusType})}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              >
+                <MenuItem value={TaskStatus.PENDING}>En attente</MenuItem>
+                <MenuItem value={TaskStatus.IN_PROGRESS}>En cours</MenuItem>
+                <MenuItem value={TaskStatus.COMPLETED}>Terminée</MenuItem>
+              </TextField>
+
+              <TextField
+                label="Échéance"
+                type="datetime-local"
+                fullWidth
+                value={formData.dueDate}
+                onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                InputLabelProps={{ shrink: true }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+              />
+            </Stack>
+
+            {/* Description */}
+            <TextField
+              label="Description"
               fullWidth
               multiline
               rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              variant="outlined"
-              disabled={loading}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
           </Stack>
         </DialogContent>
 
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button 
-            onClick={onClose} 
-            disabled={loading}
-            sx={{ fontWeight: 600, textTransform: 'none', color: 'text.secondary' }}
-          >
-            Annuler
-          </Button>
+          <Button onClick={onClose} color="inherit" sx={{ fontWeight: 600 }}>Annuler</Button>
           <Button 
             type="submit" 
             variant="contained" 
             disabled={loading}
-            disableElevation
-            sx={{ 
-              fontWeight: 700, 
-              textTransform: 'none', 
-              px: 3,
-              borderRadius: '10px',
-              minWidth: '100px'
-            }}
+            sx={{ borderRadius: '10px', px: 4, fontWeight: 700, minWidth: '120px' }}
           >
-            {loading ? <CircularProgress size={20} color="inherit" /> : (task ? 'Mettre à jour' : 'Créer')}
+            {loading ? <CircularProgress size={24} color="inherit" /> : (task ? 'Sauvegarder' : 'Créer la tâche')}
           </Button>
         </DialogActions>
       </Box>
