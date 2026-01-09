@@ -1,40 +1,78 @@
 import { useState } from 'react';
-import { 
-  Box, Typography, Stack, Button, Paper, 
-  IconButton,Fab, 
-  Chip
-} from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Box, Typography, Stack, Button, Fab, CircularProgress, Fade } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import type { Appointment, CreateAppointmentDto } from '@/types/appointment';
+import { logger } from '@/utils/logger';
+import { AppointmentFormModal } from '@/components/appointments/AppointmentFormModal';
+import { AppointmentsList } from '@/components/appointments/AppointmentsList';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
-// Exemple de données typées
-interface Appointment {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  type: 'Professional' | 'Personal' | 'Medical';
-}
 
 const mockAppointments: Appointment[] = [
-  { id: 1, title: 'Réunion d\'équipe Sync', date: '2026-01-10', time: '10:00', location: 'Salle de conférence B', type: 'Professional' },
-  { id: 2, title: 'Check-up Dentiste', date: '2026-01-10', time: '14:30', location: 'Cabinet Dr. Martin', type: 'Medical' },
-  { id: 3, title: 'Dîner avec Sophie', date: '2026-01-12', time: '20:00', location: 'Restaurant Le Bistro', type: 'Personal' },
+  {
+    id: 1, title: 'Réunion d\'équipe Sync', startAt: '2026-01-10', location: 'Salle de conférence B', type: 'Professional',
+    endAt: '',
+    userId: 0,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 2, title: 'Check-up Dentiste', startAt: '2026-01-10', location: 'Cabinet Dr. Martin', type: 'Medical',
+    endAt: '',
+    userId: 0,
+    createdAt: '',
+    updatedAt: ''
+  },
+  {
+    id: 3, title: 'Dîner avec Sophie', startAt: '2026-01-12', location: 'Restaurant Le Bistro', type: 'Personal',
+    endAt: '',
+    userId: 0,
+    createdAt: '',
+    updatedAt: ''
+  },
 ];
 
 export default function AppointmentsPage() {
+  const [isLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingApt, setEditingApt] = useState<Appointment | undefined>();
   const [appointments] = useState<Appointment[]>(mockAppointments);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'Professional': return 'primary';
-      case 'Medical': return 'warning';
-      case 'Personal': return 'success';
-      default: return 'default';
+  const handleCreateOrUpdate = (data: CreateAppointmentDto) => {
+    if (editingApt) {
+      logger.info('Update:', data);
+      // Appel API update...
+    } else {
+      logger.info('Create:', data);
+      // Appel API create...
+    }
+  };
+
+
+  const handleEdit = (appointment: Appointment) => {
+    setEditingApt(appointment);
+    setIsModalOpen(true);
+  };
+
+
+  const openDeleteConfirm = (id: number) => {
+    setSelectedId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedId) {
+      try {
+        // await deleteNote(selectedId); // Ou deleteTask selon la page
+        // await loadNotes();
+        setConfirmOpen(false);
+      } catch (error) {
+        logger.error('Delete failed', error);
+      }
     }
   };
 
@@ -52,6 +90,8 @@ export default function AppointmentsPage() {
         </Box>
         <Button 
           variant="contained" 
+          component={RouterLink}
+          to="/appointments/calendar"
           startIcon={<CalendarMonthIcon />}
           sx={{ display: { xs: 'none', md: 'flex' }, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
         >
@@ -60,79 +100,41 @@ export default function AppointmentsPage() {
       </Stack>
 
       {/* Liste Chronologique */}
-      <Stack spacing={3}>
-        {appointments.length === 0 ? (
-          <Paper sx={{ p: 6, textAlign: 'center', borderRadius: '16px', border: '1px dashed', borderColor: 'divider' }}>
-            <Typography variant="body1" color="text.secondary">Aucun rendez-vous prévu.</Typography>
-          </Paper>
-        ) : (
-          appointments.map((apt) => (
-            <Paper 
-              key={apt.id}
-              elevation={0}
-              sx={{ 
-                p: 2.5, 
-                borderRadius: '16px', 
-                border: '1px solid', 
-                borderColor: 'divider',
-                transition: 'all 0.2s',
-                '&:hover': { boxShadow: '0px 8px 24px rgba(15, 23, 42, 0.06)', borderColor: 'primary.light' }
-              }}
-            >
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ sm: 'center' }}>
-                
-                {/* Badge Date/Heure */}
-                <Box sx={{ 
-                  minWidth: '80px', 
-                  textAlign: 'center', 
-                  bgcolor: 'background.default', 
-                  p: 1.5, 
-                  borderRadius: '12px',
-                  border: '1px solid',
-                  borderColor: 'divider'
-                }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase' }}>
-                    {new Date(apt.date).toLocaleDateString('fr-FR', { month: 'short' })}
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', lineHeight: 1 }}>
-                    {new Date(apt.date).getDate()}
-                  </Typography>
-                </Box>
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : (
+        <Fade in={!isLoading}>
+          <Box>
+            <AppointmentsList
+              appointments={appointments}
+              onEdit={handleEdit}
+              onDelete={openDeleteConfirm}
+            />
+          </Box>
+        </Fade>
+      )}
 
-                {/* Détails du RDV */}
-                <Box sx={{ flex: 1 }}>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                    <Chip 
-                      label={apt.type} 
-                      size="small" 
-                      color={getTypeColor(apt.type)} 
-                      sx={{ fontSize: '0.65rem', fontWeight: 800, height: '20px' }}
-                    />
-                    <Typography variant="caption" color="text.disabled" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <AccessTimeIcon sx={{ fontSize: '14px' }} /> {apt.time}
-                    </Typography>
-                  </Stack>
-                  <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main', mb: 0.5 }}>
-                    {apt.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <LocationOnIcon sx={{ fontSize: '16px', color: 'primary.light' }} /> {apt.location}
-                  </Typography>
-                </Box>
+      <AppointmentFormModal
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setEditingApt(undefined); }}
+        onSubmit={handleCreateOrUpdate}
+        editingAppointment={editingApt}
+      />
 
-                {/* Actions */}
-                <IconButton>
-                  <MoreVertIcon />
-                </IconButton>
-              </Stack>
-            </Paper>
-          ))
-        )}
-      </Stack>
+      <ConfirmDialog
+        isOpen={confirmOpen}
+        title="Confirmer la suppression"
+        description="Cette action est irréversible. Voulez-vous vraiment supprimer cet élément ?"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setConfirmOpen(false)}
+      />
 
       {/* Bouton d'ajout flottant pour Mobile */}
       <Fab 
         color="primary" 
+        onClick={() => setIsModalOpen(true)}
         sx={{ position: 'fixed', bottom: { xs: 80, md: 40 }, right: { xs: 20, md: 40 } }}
       >
         <AddIcon />
