@@ -46,4 +46,18 @@ export class ChatService {
 
     return chat;
   }
+
+  async findChatsByUser(userId: number): Promise<Chat[]> {
+    return this.chatRepository.find({
+      where: {
+        participants: {
+          id: userId, // On filtre sur l'ID de l'utilisateur au sein des participants
+        },
+      },
+      relations: ['participants', 'messages', 'messages.sender'],
+      order: {
+        updatedAt: 'DESC', // Pour afficher les discussions les plus actives en haut
+      },
+    });
+  }
 }

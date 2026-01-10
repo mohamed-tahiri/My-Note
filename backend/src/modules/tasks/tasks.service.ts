@@ -7,10 +7,13 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from '../users/entities/user.entity';
 import { Note } from '../notes/entities/note.entity';
+import { Chat } from '../chat/entities/chat.entity';
 
 @Injectable()
 export class TasksService {
   constructor(
+    @InjectRepository(Chat)
+    private readonly chatRepository: Repository<Chat>,
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
     @InjectRepository(User)
@@ -20,8 +23,19 @@ export class TasksService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  private async createChatForTask(taskTitle: string, userIds: number[]) {
+    const participants = await this.userRepository.findBy({ id: In(userIds) });
+
+    const chat = this.chatRepository.create({
+      name: `Chat: ${taskTitle}`,
+      participants: participants,
+      type: 'task_group',
+    });
+
+    return await this.chatRepository.save(chat);
+  }
+
   async create(dto: CreateTaskDto): Promise<Task> {
-    // 1. Récupérer tous les assignés via le tableau d'IDs
     const assignees = await this.userRepository.findBy({
       id: In(dto.assigneeIds),
     });
@@ -38,16 +52,18 @@ export class TasksService {
       if (!relatedNote) throw new NotFoundException('Related note not found');
     }
 
-    // 2. Créer la tâche avec le tableau d'assignés
     const task = this.taskRepository.create({
       ...dto,
-      assignees, // ManyToMany attend un tableau d'entités
+      assignees,
       relatedNote,
     });
 
     const savedTask = await this.taskRepository.save(task);
 
-    // 3. Émettre l'événement avec les IDs des assignés
+    if (dto.assigneeIds.length > 1) {
+      await this.createChatForTask(savedTask.title, dto.assigneeIds);
+    }
+
     this.eventEmitter.emit('task.created', {
       taskId: savedTask.id,
       title: savedTask.title,
@@ -90,7 +106,6 @@ export class TasksService {
   async update(id: number, dto: UpdateTaskDto): Promise<Task> {
     const task = await this.findOne(id);
 
-    // Mise à jour des assignés si le tableau est fourni
     if (dto.assigneeIds) {
       const assignees = await this.userRepository.findBy({
         id: In(dto.assigneeIds),
@@ -118,6 +133,17 @@ export class TasksService {
       title: updatedTask.title,
       assigneeIds: updatedTask.assignees.map((a) => a.id),
     });
+
+    if (dto.assigneeIds) {
+      if (dto.assigneeIds.length > 1) {
+        const existingChat = await this.chatRepository.findOneBy({
+          name: `Chat: ${task.title}`,
+        });
+        if (!existingChat) {
+          await this.createChatForTask(task.title, dto.assigneeIds);
+        }
+      }
+    }
 
     return updatedTask;
   }

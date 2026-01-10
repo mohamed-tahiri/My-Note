@@ -6,9 +6,13 @@ import { Task } from './entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import { Note } from '../notes/entities/note.entity';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { Chat } from '../chat/entities/chat.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task, User, Note]), EventEmitterModule],
+  imports: [
+    TypeOrmModule.forFeature([Task, User, Note, Chat]),
+    EventEmitterModule,
+  ],
   providers: [TasksService],
   controllers: [TasksController],
 })

@@ -1,6 +1,7 @@
 import { Message } from '@/modules/messages/entities/message.entity';
 import { User } from '@/modules/users/entities/user.entity';
 import {
+  Column,
   CreateDateColumn,
   Entity,
   JoinTable,
@@ -14,6 +15,16 @@ import {
 export class Chat {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ nullable: true })
+  name: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['private', 'task_group'],
+    default: 'private',
+  })
+  type: string;
 
   @ManyToMany(() => User)
   @JoinTable()
