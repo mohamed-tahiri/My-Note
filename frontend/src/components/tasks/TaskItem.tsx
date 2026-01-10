@@ -1,20 +1,14 @@
 import { 
-  Box, 
-  Typography, 
-  IconButton, 
-  Checkbox, 
-  Stack, 
-  Tooltip,
-  Chip,
-  AvatarGroup,
-  Avatar,
-  alpha
+  Box, Typography, IconButton, Checkbox, Stack, AvatarGroup, Avatar, alpha
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import type { Task } from "@/types/task";
 import { TaskStatus } from "@/enums/task";
 
@@ -22,134 +16,119 @@ interface Props {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
-  onToggleStatus?: (task: Task) => void;
+  onToggleStatus?: (task: Task, newStatus?: string) => void;
 }
 
 export function TaskItem({ task, onEdit, onDelete, onToggleStatus }: Props) {
   const isCompleted = task.status === TaskStatus.COMPLETED;
 
-  // Gestion des couleurs par statut
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case TaskStatus.COMPLETED: 
-        return { label: 'Terminée', color: 'success', opacity: 0.6 };
-      case TaskStatus.IN_PROGRESS: 
-        return { label: 'En cours', color: 'primary', opacity: 1 };
-      default: 
-        return { label: 'En attente', color: 'default', opacity: 1 };
-    }
-  };
-
-  const statusConfig = getStatusConfig(task.status);
+  const moveNext = task.status === TaskStatus.PENDING ? TaskStatus.IN_PROGRESS : 
+                   task.status === TaskStatus.IN_PROGRESS ? TaskStatus.COMPLETED : null;
+  const moveBack = task.status === TaskStatus.COMPLETED ? TaskStatus.IN_PROGRESS : 
+                   task.status === TaskStatus.IN_PROGRESS ? TaskStatus.PENDING : null;
 
   return (    
     <Box 
       sx={{ 
         display: 'flex', 
-        alignItems: 'center', 
-        mb: 2,
+        flexDirection: 'column',
         p: 2,
+        mb: 2,
         borderRadius: '12px',
         border: '1px solid',
         borderColor: 'divider',
-        transition: 'all 0.2s',
+        transition: 'all 0.2s ease-in-out',
         bgcolor: isCompleted ? alpha('#f8fafc', 0.5) : 'background.paper',
         '&:hover': {
-          borderColor: 'primary.light',
-          boxShadow: '0px 4px 12px rgba(15, 23, 42, 0.04)',
-          transform: 'translateY(-1px)'
+          borderColor: 'primary.main',
+          boxShadow: '0px 4px 20px rgba(15, 23, 42, 0.08)',
+          transform: 'translateY(-2px)'
         }
       }}
     >  
-      <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ flex: 1 }}>
-        {/* Checkbox stylisée */}
+      <Stack direction="row" spacing={1.5} alignItems="flex-start">
         <Checkbox
           checked={isCompleted}
           onChange={() => onToggleStatus?.(task)}
-          icon={<RadioButtonUncheckedIcon />}
-          checkedIcon={<CheckCircleIcon />}
-          sx={{
-            color: 'divider',
-            p: 0,
-            mt: 0.5,
-            '&.Mui-checked': { color: 'success.main' },
-          }}
+          icon={<RadioButtonUncheckedIcon fontSize="small" />}
+          checkedIcon={<CheckCircleIcon fontSize="small" />}
+          sx={{ p: 0, mt: 0.3, '&.Mui-checked': { color: 'success.main' } }}
         />
 
-        {/* Corps de la tâche */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-            <Typography 
-              variant="body1" 
-              noWrap
-              sx={{ 
-                fontWeight: 700, 
-                color: isCompleted ? 'text.disabled' : 'text.primary',
-                textDecoration: isCompleted ? 'line-through' : 'none',
-              }}
-            >
-              {task.title}
-            </Typography>
-            <Chip 
-              label={statusConfig.label} 
-              size="small" 
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              color={statusConfig.color as any}
-              variant={isCompleted ? "outlined" : "filled"}
-              sx={{ height: '20px', fontSize: '0.65rem', fontWeight: 800 }}
-            />
-          </Stack>
-          
           <Typography 
             variant="body2" 
+            component={RouterLink} 
+            to={`/tasks/${task.id}`}
             sx={{ 
-              color: 'text.secondary', 
-              fontSize: '0.85rem',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              opacity: statusConfig.opacity
+              fontWeight: 700, 
+              color: isCompleted ? 'text.disabled' : 'text.primary',
+              textDecoration: isCompleted ? 'line-through' : 'none',
+              lineHeight: 1.4,
+              mb: 0.5
             }}
           >
-            {task.description || "Aucune description fournie."}
+            {task.title}
           </Typography>
-
-          {/* Footer de la tâche : Date + Assignés */}
-          <Stack direction="row" spacing={3} alignItems="center" sx={{ mt: 1.5 }}>
-            {task.dueDate && (
-              <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: 'text.disabled' }}>
-                <AccessTimeIcon sx={{ fontSize: '14px' }} />
-                <Typography variant="caption" fontWeight={600}>
-                  {new Date(task.dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                </Typography>
-              </Stack>
-            )}
-
-            {/* Avatar Group pour les multi-assignés */}
-            {task.assignees && task.assignees.length > 0 && (
-              <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 24, height: 24, fontSize: '0.6rem', border: '2px solid white' } }}>
-                {task.assignees.map((u) => (
-                  <Tooltip key={u.id} title={`${u.firstName} ${u.lastName}`}>
-                    <Avatar src={u.avatarUrl} alt={u.firstName}>
-                      {u.firstName?.charAt(0)}
-                    </Avatar>
-                  </Tooltip>
-                ))}
-              </AvatarGroup>
-            )}
-          </Stack>
+          
+          {task.description && (
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: 'text.secondary', 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                lineHeight: 1.3
+              }}
+            >
+              {task.description}
+            </Typography>
+          )}
         </Box>
       </Stack>
 
-      {/* Actions verticales pour un look plus propre sur mobile */}
-      <Stack direction="row" spacing={0.5}>
-        <IconButton size="small" onClick={() => onEdit(task)} sx={{ color: 'text.secondary' }}>
-          <EditIcon fontSize="small" />
-        </IconButton>
-        <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: 'error.light' }}>
-          <DeleteIcon fontSize="small" />
-        </IconButton>
+      {/* Footer de la carte */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {task.assignees && task.assignees.length > 0 && (
+            <AvatarGroup max={2} sx={{ '& .MuiAvatar-root': { width: 20, height: 20, fontSize: '0.5rem' } }}>
+              {task.assignees.map((u) => (
+                <Avatar key={u.id} src={u.avatarUrl}>{u.firstName?.charAt(0)}</Avatar>
+              ))}
+            </AvatarGroup>
+          )}
+          {task.dueDate && (
+             <Typography variant="caption" color="text.disabled" sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                <AccessTimeIcon sx={{ fontSize: '12px' }} />
+                {new Date(task.dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+             </Typography>
+          )}
+        </Stack>
+
+        <Stack direction="row" spacing={0}>
+          {/* Boutons de mouvement rapide */}
+          {moveBack && (
+            <IconButton size="small" onClick={() => onToggleStatus?.(task, moveBack)}>
+              <ArrowBackIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          )}
+          
+          {moveNext && (
+            <IconButton size="small" onClick={() => onToggleStatus?.(task, moveNext)} color="primary">
+              <ArrowForwardIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          )}
+
+          <IconButton size="small" onClick={() => onEdit(task)}>
+            <EditIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+
+          <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: 'error.light' }}>
+            <DeleteIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Stack>
       </Stack>
     </Box>
   );

@@ -10,7 +10,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
-import { getTasksByUser, deleteTask } from '@/api/tasksService';
+import { getTasksByUser, deleteTask, update } from '@/api/tasksService';
 import { TaskList } from '@/components/tasks/TaskList';
 import { TaskModal } from '@/components/tasks/TaskForm';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +18,7 @@ import { logger } from '@/utils/logger';
 import type { Task } from '@/types/task';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { TaskStatus, type TaskStatusType } from '@/enums/task';
 
 export default function TasksPage() {
   const { user } = useAuth();
@@ -67,6 +68,26 @@ export default function TasksPage() {
   const handleEdit = (task: Task) => {
     setEditingTask(task);
     setIsTaskModalOpen(true);
+  };
+
+  const handleToggleStatus = async (task: Task, newStatus?: string) => {
+    try {
+      let targetStatus: string;
+
+      if (newStatus) {
+        targetStatus = newStatus;
+      } else {
+        targetStatus = task.status === TaskStatus.COMPLETED 
+          ? TaskStatus.PENDING 
+          : TaskStatus.COMPLETED;
+      }
+
+      await update(task.id, { status: targetStatus as TaskStatusType });
+      
+      loadTasks(); 
+    } catch (error) {
+      logger.error('Erreur lors du changement de statut', error);
+    }
   };
 
   const handleCreate = () => {
@@ -121,6 +142,7 @@ export default function TasksPage() {
               tasks={tasks}
               onEdit={handleEdit}
               onDelete={openDeleteConfirm}
+              onToggleStatus={handleToggleStatus}
             />
           </Box>
         </Fade>

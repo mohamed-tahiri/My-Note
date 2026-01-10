@@ -2,7 +2,7 @@ export const TaskStatus = {
   PENDING: 'pending',
   IN_PROGRESS: 'in_progress',
   COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
+  ARCHIVED: 'archived',
 } as const;
 
 export type TaskStatusType = typeof TaskStatus[keyof typeof TaskStatus];
