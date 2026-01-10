@@ -8,6 +8,12 @@ import api from './api';
 export const getAll = () => api.get('/chat');
 
 /**
+ * Récupère tous les messages de chat d'un utilisateur.
+ * @returns Une promesse contenant la liste des messages
+ */
+export const getChatsByUser = (id: number) => api.get(`/chat/${id}/user`);
+
+/**
  * Récupère un message de chat par son ID.
  * @param id L'identifiant du message
  * @returns Une promesse contenant le message correspondant

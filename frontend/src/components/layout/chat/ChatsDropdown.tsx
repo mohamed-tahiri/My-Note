@@ -1,33 +1,49 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { 
   Box, IconButton, Badge, Menu, Typography, 
   List, ListItem, ListItemAvatar, Avatar, ListItemText, 
-  Divider, Tooltip 
+  Divider, Tooltip, CircularProgress, alpha
 } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
 import PersonIcon from '@mui/icons-material/Person';
+import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from 'react-router-dom';
-
-// Structure de données typée pour vos messages
-interface ChatPreview {
-  id: string | number;
-  name: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: boolean;
-}
+import { useAuth } from '@/hooks/useAuth';
+import type { Chat } from '@/types/chat';
+import { getChatsByUser } from '@/api/chatService';
+import type { User } from '@/types/user';
 
 export default function ChatsDropdown() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  
   const open = Boolean(anchorEl);
 
-  // Exemple de données (À lier à votre State/Socket plus tard)
-  const [chats] = useState<ChatPreview[]>([
-    { id: 1, name: 'Jean Dupont', lastMessage: 'On se voit demain pour la note ?', timestamp: '10:30', unread: true },
-    { id: 2, name: 'Marie Courtois', lastMessage: 'Merci pour le partage !', timestamp: 'Hier', unread: false },
-    { id: 3, name: 'Groupe Projet', lastMessage: 'Le compte-rendu est prêt.', timestamp: 'Lun', unread: false },
-  ]);
+  const loadChats = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+        const res = await getChatsByUser(Number(user.id));
+        // On trie pour mettre les plus récents en haut
+        const sortedChats = res.data.sort((a: Chat, b: Chat) => 
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        setChats(sortedChats);
+    } catch (error) {
+        console.error("Erreur chargement chats", error);
+    } finally {
+        setLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (open) {
+      loadChats();
+    }
+  }, [open, loadChats]);
 
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -37,7 +53,8 @@ export default function ChatsDropdown() {
     setAnchorEl(null);
   };
 
-  const unreadCount = chats.filter(c => c.unread).length;
+  // On considère un chat comme "non lu" s'il y a des messages (à affiner avec votre logique unread backend)
+  const unreadCount = chats.length; 
 
   return (
     <Box>
@@ -49,7 +66,7 @@ export default function ChatsDropdown() {
         >
           <Badge 
             badgeContent={unreadCount} 
-            color="success"
+            color="error"
             sx={{ '& .MuiBadge-badge': { fontWeight: 700, fontSize: '0.65rem' } }}
           >
             <ChatIcon />
@@ -69,80 +86,91 @@ export default function ChatsDropdown() {
             width: 360,
             maxHeight: 480,
             borderRadius: '12px',
-            boxShadow: '0px 10px 25px rgba(0,0,0,0.1)',
-            overflow: 'hidden'
+            boxShadow: '0px 10px 25px rgba(15, 23, 42, 0.15)',
+            overflowY: 'auto',
+            border: '1px solid',
+            borderColor: 'divider'
           }
         }}
       >
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-            Messages
+          <Typography variant="subtitle1" fontWeight={800} color="primary.main">
+            Messages récents
           </Typography>
         </Box>
         
         <Divider />
 
-        <List sx={{ p: 0, bgcolor: 'background.paper' }}>
-          {chats.length === 0 ? (
+        <List sx={{ p: 0 }}>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : chats.length === 0 ? (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                Aucun message récent
+                Aucune conversation
               </Typography>
             </Box>
           ) : (
-            chats.map((chat) => (
-              <React.Fragment key={chat.id}>
-                <ListItem
-                  onClick={() => {
-                    navigate(`/chats/${chat.id}`);
-                    handleClose();
-                  }}
-                  sx={{
-                    cursor: 'pointer',
-                    py: 1.5,
-                    px: 2,
-                    '&:hover': { bgcolor: 'background.default' },
-                    transition: 'background-color 0.2s',
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Badge
-                      overlap="circular"
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      variant="dot"
-                      invisible={!chat.unread}
-                      sx={{ '& .MuiBadge-badge': { bgcolor: 'success.main' } }}
-                    >
-                      <Avatar sx={{ bgcolor: 'primary.light' }}>
-                        <PersonIcon />
+            chats.map((chat) => {
+              const isGroup = chat.type === 'task_group';
+              const displayName = chat.name || 
+                  chat.participants.find((p: User) => p.id !== user?.id)?.firstName || "Discussion";
+              const lastMsg = chat.messages?.[chat.messages.length - 1];
+
+              return (
+                <React.Fragment key={chat.id}>
+                  <ListItem
+                    onClick={() => {
+                      navigate(`/chats/${chat.id}`);
+                      handleClose();
+                    }}
+                    sx={{
+                      cursor: 'pointer',
+                      py: 1.5,
+                      px: 2,
+                      transition: 'all 0.2s',
+                      '&:hover': { bgcolor: alpha('#F1F5F9', 0.8) },
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar 
+                        sx={{ 
+                          bgcolor: isGroup ? 'secondary.main' : 'primary.light',
+                          width: 42,
+                          height: 42
+                        }}
+                      >
+                        {isGroup ? <GroupIcon /> : <PersonIcon />}
                       </Avatar>
-                    </Badge>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={chat.name}
-                    secondary={chat.lastMessage}
-                    primaryTypographyProps={{
-                      variant: 'body2',
-                      fontWeight: chat.unread ? 700 : 500,
-                      color: 'primary.main',
-                      noWrap: true
-                    }}
-                    secondaryTypographyProps={{
-                      variant: 'caption',
-                      color: 'text.secondary',
-                      noWrap: true,
-                      sx: { display: 'block', mt: 0.2 }
-                    }}
-                  />
-                  <Box sx={{ ml: 1, textAlign: 'right', minWidth: 50 }}>
-                    <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem' }}>
-                      {chat.timestamp}
-                    </Typography>
-                  </Box>
-                </ListItem>
-                <Divider component="li" sx={{ mx: 2, opacity: 0.6 }} />
-              </React.Fragment>
-            ))
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={displayName}
+                      secondary={lastMsg?.content || "Démarrer une conversation..."}
+                      primaryTypographyProps={{
+                        variant: 'body2',
+                        fontWeight: 700,
+                        color: 'text.primary',
+                        noWrap: true
+                      }}
+                      secondaryTypographyProps={{
+                        variant: 'caption',
+                        color: 'text.secondary',
+                        noWrap: true,
+                        sx: { mt: 0.3, display: 'block' }
+                      }}
+                    />
+                    <Box sx={{ ml: 1, textAlign: 'right', minWidth: 60 }}>
+                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem', fontWeight: 600 }}>
+                        {lastMsg ? new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      </Typography>
+                    </Box>
+                  </ListItem>
+                  <Divider component="li" sx={{ mx: 2, opacity: 0.5 }} />
+                </React.Fragment>
+              );
+            })
           )}
         </List>
       </Menu>

@@ -8,7 +8,7 @@ import { Logout } from '@mui/icons-material';
 import { useState, useMemo } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
-import NotificationsDropdown from './NotificationsDropdown';
+import NotificationsDropdown from './notifications/NotificationsDropdown';
 import ChatsDropdown from './chat/ChatsDropdown';
 import { env } from '@/utils/env';
 
