@@ -43,7 +43,7 @@
 
 ### 1. Cloner le projet
 ```bash
-git clone [https://github.com/mohamed-tahiri/My-Note](https://github.com/mohamed-tahiri/My-Note)
+git clone https://github.com/mohamed-tahiri/My-Note
 cd slate-app
 ```
 
@@ -105,4 +105,4 @@ L'application utilise une palette de couleurs Slate (Slate 500 à 900) pour une 
 ---
 ## 🤝 Contact
 
-Mohamed TAHIRI - mhdtahiri01@gmail.com - [GitHub](https://github.com/mohamed-tahiri/My-Note) - [Portfolio](https://mhdthr.vercel.app/)
+Mohamed TAHIRI - mhdtahiri01@gmail.com - [GitHub](https://github.com/mohamed-tahiri) - [Portfolio](https://mhdthr.vercel.app/)
