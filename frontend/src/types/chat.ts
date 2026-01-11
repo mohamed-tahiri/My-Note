@@ -3,18 +3,22 @@ import type { User } from "./user";
 
 export interface Chat {
   id: number;
-  participants: User[];
   name: string;
   type: string;
+  participants: User[];
   messages: Message[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateChatDto {
+  name: string;
+  type: 'private' | 'task_group';
   participantIds: number[];
 }
 
 export interface UpdateChatDto {
+  name?: string;
+  type?: string;
   participantIds?: number[];
 }

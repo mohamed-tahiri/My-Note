@@ -9,8 +9,8 @@ import { useState, useMemo } from 'react';
 
 import { useAuth } from '@/hooks/useAuth';
 import NotificationsDropdown from './notifications/NotificationsDropdown';
-import ChatsDropdown from './chat/ChatsDropdown';
 import { env } from '@/utils/env';
+import ChatsDropdown from '../chat/ChatsDropdown';
 
 export default function Header() {
   const { user, logout } = useAuth();

@@ -2,8 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { 
   Box, Typography, List, ListItem, ListItemAvatar, 
   Avatar, ListItemText, Divider, CircularProgress, 
-  Paper, alpha, InputBase, Stack
+  Paper, alpha, InputBase, Stack,
+  IconButton
 } from '@mui/material';
+import AddCommentIcon from '@mui/icons-material/AddComment';
+import { CreateChatModal } from '@/components/chat/CreateChatModal';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
 import SearchIcon from '@mui/icons-material/Search';
@@ -20,6 +23,7 @@ export default function ChatsPage() {
   const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const loadChats = useCallback(async () => {
     if (!user?.id) return;
@@ -51,7 +55,15 @@ export default function ChatsPage() {
         }}
       >
         <Box sx={{ p: 3 }}>
-          <Typography variant="h5" fontWeight={800} sx={{ mb: 2 }}>Messages</Typography>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+          <Typography variant="h5" fontWeight={800}>Messages</Typography>
+            <IconButton
+              onClick={() => setIsCreateModalOpen(true)}
+              sx={{ bgcolor: alpha('#2563eb', 0.1), color: 'primary.main' }}
+            >
+              <AddCommentIcon fontSize="small" />
+            </IconButton>
+          </Stack>
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -122,6 +134,14 @@ export default function ChatsPage() {
           </Stack>
         )}
       </Box>
+      <CreateChatModal 
+        open={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onChatCreated={(newChat) => {
+          setChats(prev => [newChat, ...prev]);
+          navigate(`/chats/${newChat.id}`);
+        }}
+      />
     </Box>
   );
 }
