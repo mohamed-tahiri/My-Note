@@ -1,27 +1,33 @@
-import { Box, Typography, Paper, Breadcrumbs, Link, Stack, Button } from '@mui/material';
+import { Box, Typography, Paper, Breadcrumbs, Link, Stack, Button, CircularProgress } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ListIcon from '@mui/icons-material/List';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import CalendarView from '@/components/calendar/CalendarView';
-import { useState } from 'react';
-
-interface Appointment {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  type: 'Professional' | 'Personal' | 'Medical';
-}
-
-const mockAppointments: Appointment[] = [
-  { id: 1, title: 'Réunion d\'équipe Sync', date: '2026-01-10', time: '10:00', location: 'Salle de conférence B', type: 'Professional' },
-  { id: 2, title: 'Check-up Dentiste', date: '2026-01-10', time: '14:30', location: 'Cabinet Dr. Martin', type: 'Medical' },
-  { id: 3, title: 'Dîner avec Sophie', date: '2026-01-12', time: '20:00', location: 'Restaurant Le Bistro', type: 'Personal' },
-];
+import { useCallback, useEffect, useState } from 'react';
+import { getAll } from '@/api/appointmentsService';
+import { logger } from '@/utils/logger';
+import type { Appointment } from '@/types/appointment';
 
 export default function CalendarPage() {
-    const [appointments] = useState<Appointment[]>(mockAppointments);
+    const [isLoading, setIsLoading] = useState(true);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+
+     const loadAppointments = useCallback(async () => {
+        try {
+          setIsLoading(true);
+          const res = await getAll();
+          setAppointments(res.data);
+        } catch (error) {
+          logger.error('Erreur lors du chargement des rendez-vous:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      }, []);
+    
+    useEffect(() => {
+        loadAppointments();
+    }, [loadAppointments]);
 
     return (
         <Box>
@@ -48,9 +54,15 @@ export default function CalendarPage() {
                 Vue Liste
                 </Button>
             </Stack>
-            <Paper sx={{ p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-                <CalendarView appointments={appointments} />
-            </Paper>
+            {isLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+                    <CircularProgress color="primary" />
+                </Box>
+            ) : (
+                <Paper sx={{ p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
+                    <CalendarView appointments={appointments} />
+                </Paper>
+            )}
         </Box>
     );
 }

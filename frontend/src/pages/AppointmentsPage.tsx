@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Stack, Button, Fab, CircularProgress, Fade } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -8,56 +8,55 @@ import { logger } from '@/utils/logger';
 import { AppointmentFormModal } from '@/components/appointments/AppointmentFormModal';
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-
-
-const mockAppointments: Appointment[] = [
-  {
-    id: 1, title: 'Réunion d\'équipe Sync', startAt: '2026-01-10', location: 'Salle de conférence B', type: 'Professional',
-    endAt: '',
-    userId: 0,
-    createdAt: '',
-    updatedAt: ''
-  },
-  {
-    id: 2, title: 'Check-up Dentiste', startAt: '2026-01-10', location: 'Cabinet Dr. Martin', type: 'Medical',
-    endAt: '',
-    userId: 0,
-    createdAt: '',
-    updatedAt: ''
-  },
-  {
-    id: 3, title: 'Dîner avec Sophie', startAt: '2026-01-12', location: 'Restaurant Le Bistro', type: 'Personal',
-    endAt: '',
-    userId: 0,
-    createdAt: '',
-    updatedAt: ''
-  },
-];
+// Import complet des services
+import { getAll, create, update, deleteAppointment } from '@/api/appointmentsService';
 
 export default function AppointmentsPage() {
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingApt, setEditingApt] = useState<Appointment | undefined>();
-  const [appointments] = useState<Appointment[]>(mockAppointments);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const handleCreateOrUpdate = (data: CreateAppointmentDto) => {
-    if (editingApt) {
-      logger.info('Update:', data);
-      // Appel API update...
-    } else {
-      logger.info('Create:', data);
-      // Appel API create...
+  // Charger les rendez-vous depuis l'API
+  const loadAppointments = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await getAll();
+      setAppointments(res.data);
+    } catch (error) {
+      logger.error('Erreur lors du chargement des rendez-vous:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
+
+  const handleCreateOrUpdate = async (data: CreateAppointmentDto) => {
+    try {
+      if (editingApt) {
+        await update(editingApt.id, data);
+        logger.info('Rendez-vous mis à jour');
+      } else {
+        await create(data);
+        logger.info('Rendez-vous créé');
+      }
+      setIsModalOpen(false);
+      setEditingApt(undefined);
+      loadAppointments();
+    } catch (error) {
+      logger.error('Erreur lors de la sauvegarde:', error);
     }
   };
-
 
   const handleEdit = (appointment: Appointment) => {
     setEditingApt(appointment);
     setIsModalOpen(true);
   };
-
 
   const openDeleteConfirm = (id: number) => {
     setSelectedId(id);
@@ -67,18 +66,19 @@ export default function AppointmentsPage() {
   const handleConfirmDelete = async () => {
     if (selectedId) {
       try {
-        // await deleteNote(selectedId); // Ou deleteTask selon la page
-        // await loadNotes();
+        await deleteAppointment(selectedId);
         setConfirmOpen(false);
+        setSelectedId(null);
+        loadAppointments();
+        logger.info('Rendez-vous supprimé');
       } catch (error) {
-        logger.error('Delete failed', error);
+        logger.error('Erreur lors de la suppression:', error);
       }
     }
   };
 
   return (
     <Box sx={{ pb: 8 }}>
-      {/* Header avec bouton d'ajout moderne */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main' }}>
@@ -99,7 +99,6 @@ export default function AppointmentsPage() {
         </Button>
       </Stack>
 
-      {/* Liste Chronologique */}
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
           <CircularProgress color="primary" />
@@ -126,16 +125,20 @@ export default function AppointmentsPage() {
       <ConfirmDialog
         isOpen={confirmOpen}
         title="Confirmer la suppression"
-        description="Cette action est irréversible. Voulez-vous vraiment supprimer cet élément ?"
+        description="Cette action est irréversible. Voulez-vous vraiment supprimer ce rendez-vous ?"
         onConfirm={handleConfirmDelete}
         onClose={() => setConfirmOpen(false)}
       />
 
-      {/* Bouton d'ajout flottant pour Mobile */}
       <Fab 
         color="primary" 
         onClick={() => setIsModalOpen(true)}
-        sx={{ position: 'fixed', bottom: { xs: 80, md: 40 }, right: { xs: 20, md: 40 } }}
+        sx={{ 
+          position: 'fixed', 
+          bottom: { xs: 80, md: 40 }, 
+          right: { xs: 20, md: 40 },
+          boxShadow: '0px 4px 20px rgba(37, 99, 235, 0.4)'
+        }}
       >
         <AddIcon />
       </Fab>

@@ -11,7 +11,7 @@ export class AppointmentListener {
   @OnEvent('appointment.created')
   async handleAppointmentCreated(payload: {
     appointmentId: number;
-    title: string; // Ajouté pour un message plus clair
+    title: string;
     userId: number;
     assignedToId?: number;
   }) {

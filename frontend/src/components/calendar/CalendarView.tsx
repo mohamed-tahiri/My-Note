@@ -3,15 +3,8 @@ import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import { useState } from 'react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import type { Appointment } from '@/types/appointment';
 
-interface Appointment {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  type: 'Professional' | 'Personal' | 'Medical';
-}
 
 export default function CalendarView({ appointments }: { appointments: Appointment[] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -74,7 +67,7 @@ export default function CalendarView({ appointments }: { appointments: Appointme
         overflow: 'hidden'
       }}>
         {calendarDays.map((day, idx) => {
-          const dayAppointments = appointments.filter(apt => isSameDay(new Date(apt.date), day));
+          const dayAppointments = appointments.filter(apt => isSameDay(new Date(apt.startAt), day));
           const isCurrentMonth = isSameMonth(day, monthStart);
           const isToday = isSameDay(day, new Date());
 

@@ -33,6 +33,7 @@ export class AppointmentsService {
       title: dto.title,
       startAt: dto.startAt,
       endAt: dto.endAt,
+      location: dto.location,
       user,
       assignedTo,
     });
@@ -41,6 +42,7 @@ export class AppointmentsService {
 
     this.eventEmitter.emit('appointment.created', {
       appointmentId: saved.id,
+      title: saved.title,
       userId: user.id,
       assignedToId: assignedTo?.id,
     });
@@ -86,6 +88,7 @@ export class AppointmentsService {
 
     this.eventEmitter.emit('appointment.updated', {
       appointmentId: updated.id,
+      title: updated.title,
       userId: updated.user.id,
       assignedToId: updated.assignedTo?.id,
     });
@@ -95,12 +98,14 @@ export class AppointmentsService {
 
   async remove(id: number): Promise<void> {
     const appointment = await this.findOne(id);
-    await this.appointmentRepository.remove(appointment);
 
     this.eventEmitter.emit('appointment.deleted', {
       appointmentId: appointment.id,
+      title: appointment.title,
       userId: appointment.user.id,
       assignedToId: appointment.assignedTo?.id,
     });
+
+    await this.appointmentRepository.remove(appointment);
   }
 }
