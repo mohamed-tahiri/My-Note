@@ -12,7 +12,7 @@ import { NotFound } from '@/components/ui/NotFound';
 import ProfilePage from '@/pages/ProfilePage';
 import CalendarPage from '@/pages/CalendarPage';
 import ChatsPage from '@/pages/ChatsPage';
-import ChatWindow from '@/components/chat/ChatWindow';
+import ChatWindow from '@/components/chat/window/ChatWindow';
 
 export default function AppRoutes() {
   return (
