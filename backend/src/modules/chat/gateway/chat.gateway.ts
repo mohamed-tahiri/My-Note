@@ -1,69 +1,40 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   WebSocketGateway,
+  WebSocketServer,
   SubscribeMessage,
   MessageBody,
   ConnectedSocket,
-  WebSocketServer,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { UsePipes, ValidationPipe, Logger } from '@nestjs/common';
-import { MessagesService } from '@/modules/messages/messages.service';
-import { CreateMessageDto } from '@/modules/messages/dto/create-message.dto';
 
 @WebSocketGateway({
-  cors: {
-    origin: '*',
-  },
+  cors: { origin: '*' }, // À restreindre en production
 })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway {
   @WebSocketServer()
-  public server!: Server;
+  server: Server;
 
-  private readonly logger = new Logger(ChatGateway.name);
-
-  constructor(private readonly messagesService: MessagesService) {}
-
-  handleConnection(client: Socket): void {
-    this.logger.log(`Client connected: ${client.id}`);
-  }
-
-  handleDisconnect(client: Socket): void {
-    this.logger.warn(`Client disconnected: ${client.id}`);
-  }
-
+  // L'utilisateur rejoint une "room" spécifique au chat
   @SubscribeMessage('joinChat')
-  joinChat(
-    @MessageBody('chatId') chatId: number,
-    @ConnectedSocket() client: Socket,
-  ): void {
-    client.join(`chat-${chatId}`);
-    this.logger.log(`Client ${client.id} joined chat ${chatId}`);
-  }
-
-  @UsePipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  )
-  @SubscribeMessage('sendMessage')
-  async handleMessage(
-    @MessageBody() dto: CreateMessageDto,
+  handleJoinChat(
+    @MessageBody() chatId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    const user = client.data.user as { id: number };
+    void client.join(`chat_${chatId}`);
+    console.log(`Client ${client.id} joined room: chat_${chatId}`);
+  }
 
-    const message = await this.messagesService.create({
-      ...dto,
-      senderId: user.id,
-    });
+  // L'utilisateur quitte la room
+  @SubscribeMessage('leaveChat')
+  handleLeaveChat(
+    @MessageBody() chatId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    void client.leave(`chat_${chatId}`);
+  }
 
-    this.server.to(`chat-${dto.chatId}`).emit('newMessage', message);
-
-    return message;
+  // Méthode pour diffuser un message (appelée par le MessagesService)
+  emitMessage(chatId: number, message: any) {
+    this.server.to(`chat_${chatId}`).emit('newMessage', message);
   }
 }
