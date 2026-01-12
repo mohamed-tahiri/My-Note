@@ -1,7 +1,6 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Box, Typography, Button, Container, Paper } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
-// Remplace par ton utilitaire de log réel ou console.error
 const logger = { error: console.error }; 
 
 interface Props {

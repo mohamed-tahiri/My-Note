@@ -48,8 +48,6 @@ export default function ProfilePage() {
         };
 
         const updatedUser = await updateProfile(user.id, payload); 
-      
-        logger.info('User updated:', updatedUser);
 
         updateUserInfo(updatedUser);
         

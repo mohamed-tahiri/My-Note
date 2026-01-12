@@ -40,10 +40,8 @@ export default function AppointmentsPage() {
     try {
       if (editingApt) {
         await update(editingApt.id, data);
-        logger.info('Rendez-vous mis à jour');
       } else {
         await create(data);
-        logger.info('Rendez-vous créé');
       }
       setIsModalOpen(false);
       setEditingApt(undefined);
@@ -70,7 +68,6 @@ export default function AppointmentsPage() {
         setConfirmOpen(false);
         setSelectedId(null);
         loadAppointments();
-        logger.info('Rendez-vous supprimé');
       } catch (error) {
         logger.error('Erreur lors de la suppression:', error);
       }
