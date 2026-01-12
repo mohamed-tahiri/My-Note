@@ -125,7 +125,6 @@ export function CreateChatModal({ open, onClose, onChatCreated }: CreateChatModa
             )}
           />
 
-          {/* Affiche le champ Nom du groupe uniquement si > 1 personne sélectionnée */}
           {selectedUsers.length > 1 && (
             <TextField
               label="Nom du groupe"
