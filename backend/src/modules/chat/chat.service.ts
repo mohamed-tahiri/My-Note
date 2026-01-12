@@ -48,16 +48,18 @@ export class ChatService {
   }
 
   async findChatsByUser(userId: number): Promise<Chat[]> {
-    return this.chatRepository.find({
+    const chats = await this.chatRepository.find({
       where: {
         participants: {
-          id: userId, // On filtre sur l'ID de l'utilisateur au sein des participants
+          id: userId,
         },
       },
-      relations: ['participants', 'messages', 'messages.sender'],
+      relations: ['participants', 'lastMessage', 'lastMessage.sender'],
       order: {
         updatedAt: 'DESC', // Pour afficher les discussions les plus actives en haut
       },
     });
+
+    return chats;
   }
 }

@@ -10,20 +10,19 @@ import { Chat } from '../chat/entities/chat.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ChatGateway } from '../chat/gateway/chat.gateway';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
-
     @InjectRepository(Chat)
     private readonly chatRepository: Repository<Chat>,
-
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-
     private readonly eventEmitter: EventEmitter2,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   async create(dto: CreateMessageDto): Promise<Message> {
@@ -56,6 +55,18 @@ export class MessagesService {
     });
 
     const savedMessage = await this.messageRepository.save(message);
+
+    chat.lastMessage = savedMessage;
+    chat.updatedAt = new Date();
+
+    await this.chatRepository.save(chat);
+
+    const messageWithDetails = await this.messageRepository.findOne({
+      where: { id: savedMessage.id },
+      relations: ['sender'],
+    });
+
+    this.chatGateway.emitMessage(savedMessage.chat.id, messageWithDetails);
 
     this.eventEmitter.emit('message.created', {
       messageId: savedMessage.id,
