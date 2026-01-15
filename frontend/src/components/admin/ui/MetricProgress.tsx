@@ -1,4 +1,4 @@
-import type { MetricProgressProps } from "@/types";
+import type { MetricProgressProps } from "@/types/admin";
 import { Box, LinearProgress, Stack, Typography } from "@mui/material";
 
 export const MetricProgress = ({ 
