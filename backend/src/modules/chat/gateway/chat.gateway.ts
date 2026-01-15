@@ -1,3 +1,4 @@
+import { Message } from '@/modules/messages/entities/message.entity';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -14,27 +15,28 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  // L'utilisateur rejoint une "room" spécifique au chat
   @SubscribeMessage('joinChat')
   handleJoinChat(
-    @MessageBody() chatId: string,
+    @MessageBody() chatId: number,
     @ConnectedSocket() client: Socket,
   ) {
-    void client.join(`chat_${chatId}`);
-    console.log(`Client ${client.id} joined room: chat_${chatId}`);
+    const roomName = `chat_${chatId}`;
+    void client.join(roomName);
+    console.log(`Client ${client.id} joined room: ${roomName}`);
   }
 
-  // L'utilisateur quitte la room
   @SubscribeMessage('leaveChat')
   handleLeaveChat(
-    @MessageBody() chatId: string,
+    @MessageBody() chatId: number,
     @ConnectedSocket() client: Socket,
   ) {
     void client.leave(`chat_${chatId}`);
   }
 
-  // Méthode pour diffuser un message (appelée par le MessagesService)
-  emitMessage(chatId: number, message: any) {
+  emitMessage(chatId: number, message: Message) {
+    const roomName = `chat_${chatId}`;
+    console.log(`Sending message to room ${roomName}`, message.content);
+
     this.server.to(`chat_${chatId}`).emit('newMessage', message);
   }
 }

@@ -63,10 +63,16 @@ export class MessagesService {
 
     const messageWithDetails = await this.messageRepository.findOne({
       where: { id: savedMessage.id },
-      relations: ['sender'],
+      relations: ['sender', 'chat'],
     });
 
-    this.chatGateway.emitMessage(savedMessage.chat.id, messageWithDetails);
+    if (!messageWithDetails) return savedMessage;
+    // 3. RÉCUPÉRATION DE L'ID DU CHAT
+    // savedMessage.chat peut être un objet complet ou juste un ID selon votre config
+    // On utilise l'ID du chat provenant du message chargé avec ses relations
+    const chatId = messageWithDetails.chat.id;
+
+    this.chatGateway.emitMessage(chatId, messageWithDetails);
 
     this.eventEmitter.emit('message.created', {
       messageId: savedMessage.id,

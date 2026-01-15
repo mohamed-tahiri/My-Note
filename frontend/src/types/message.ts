@@ -1,3 +1,4 @@
+import type { Chat } from "./chat";
 import type { User } from "./user";
 
 export interface Message {
@@ -5,6 +6,7 @@ export interface Message {
   content: string;
   sender: User;
   senderId: number;
+  chat: Chat;
   chatId: number;
   createdAt: string;
   updatedAt: string;
