@@ -7,6 +7,7 @@ import { getChatsByUser } from '@/api/chatService';
 import { CreateChatModal } from '@/components/chat/CreateChatModal';
 import type { Chat } from '@/types/chat';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
+import { logger } from '@/utils/logger';
 
 export default function ChatsPage() {
   const { id: activeChatId } = useParams();
@@ -21,7 +22,7 @@ export default function ChatsPage() {
       const res = await getChatsByUser(Number(user.id));
       setChats(res.data);
     } catch (error) {
-      console.error("Erreur chargement chats", error);
+      logger.error("Erreur chargement chats", error);
     } finally {
       setLoading(false);
     }

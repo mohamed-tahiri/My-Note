@@ -9,6 +9,7 @@ import type { Message } from '@/types/message';
 import Icon from './Icon';
 import Header from './Header';
 import { ChatItem } from '../ChatItem';
+import { logger } from '@/utils/logger';
 
 export default function ChatsDropdown() {
   const { socket } = useChatSocket();
@@ -30,7 +31,7 @@ export default function ChatsDropdown() {
         );
         setChats(sortedChats);
     } catch (error) {
-        console.error("Erreur chargement chats", error);
+      logger.error("Erreur chargement chats", error);
     } finally {
         setLoading(false);
     }

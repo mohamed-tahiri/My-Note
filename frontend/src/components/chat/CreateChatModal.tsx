@@ -8,6 +8,7 @@ import { getAll as getAllUsers } from '@/api/userService';
 import { create as createChat } from '@/api/chatService';
 import type { User } from '@/types/user';
 import type { Chat, CreateChatDto } from '@/types/chat';
+import { logger } from '@/utils/logger';
 
 interface CreateChatModalProps {
   open: boolean;
@@ -30,7 +31,7 @@ export function CreateChatModal({ open, onClose, onChatCreated }: CreateChatModa
         const res = await getAllUsers();
         setUsers(res.data);
       } catch (err) {
-        console.error("Erreur chargement utilisateurs:", err);
+        logger.error("Erreur chargement utilisateurs:", err);
       } finally {
         setFetchingUsers(false);
       }
@@ -56,7 +57,7 @@ export function CreateChatModal({ open, onClose, onChatCreated }: CreateChatModa
       onChatCreated(res.data);
       handleInternalClose();
     } catch (err) {
-      console.error("Erreur lors de la création du chat:", err);
+      logger.error("Erreur lors de la création du chat:", err);
     } finally {
       setLoading(false);
     }
