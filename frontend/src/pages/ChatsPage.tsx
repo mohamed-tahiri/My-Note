@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
-import ForumIcon from '@mui/icons-material/Forum';
+import { Box } from '@mui/material';
 import { useParams, Outlet } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getChatsByUser } from '@/api/chatService';
@@ -41,15 +40,7 @@ export default function ChatsPage() {
       />
 
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', bgcolor: '#f8fafc' }}>
-        {activeChatId ? (
-          <Outlet /> 
-        ) : (
-          <Stack sx={{ m: 'auto', alignItems: 'center', textAlign: 'center', opacity: 0.5 }}>
-            <ForumIcon sx={{ fontSize: 80, mb: 2, color: 'primary.light' }} />
-            <Typography variant="h6" fontWeight={700}>Vos conversations</Typography>
-            <Typography variant="body2">Sélectionnez une discussion pour commencer à écrire.</Typography>
-          </Stack>
-        )}
+        <Outlet /> 
       </Box>
 
       <CreateChatModal 

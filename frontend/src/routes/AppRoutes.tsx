@@ -19,6 +19,7 @@ import MonitoringPage from '@/pages/admin/MonitoringPage';
 import AnalyticsPage from '@/pages/admin/AnalyticsPage';
 import SecurityPage from '@/pages/admin/SecurityPage';
 import SettingsPage from '@/pages/admin/SettingsPage';
+import { ChatPlaceholder } from '@/components/chat/ChatPlaceholder';
 
 export default function AppRoutes() {
   return (
@@ -49,16 +50,16 @@ export default function AppRoutes() {
 
         {/* Section Chats */}
         <Route path="chats" element={<ChatsPage />}>
+          <Route index element={<ChatPlaceholder />} />
           <Route path=":id" element={<ChatWindow />} />
         </Route>
-
 
         {/* Section Profile */}
         <Route path="profile" element={<ProfilePage />} />
       </Route>
 
 
-      {/* Section Admin */}
+      {/* Admin */}
       <Route path="admin" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           {/* This handles the redirect from /admin to /admin/overview */}
           <Route index element={<Navigate to="overview" replace />} />
