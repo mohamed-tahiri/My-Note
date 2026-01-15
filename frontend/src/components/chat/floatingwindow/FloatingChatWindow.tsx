@@ -91,7 +91,6 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
                 senderId: user.id
             };
 
-            // 1. Envoi API
             const response = await create(payload);
             const sendedMessage = response.data;
 

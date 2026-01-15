@@ -11,6 +11,7 @@ import { create } from '@/api/messagesService';
 import { ChatMessage } from '../ChatMessage';
 import { ChatInput } from '../ChatInput';
 import { logger } from '@/utils/logger';
+import { ChatInfoDrawer } from './ChatInfoDrawer';
 
 export default function ChatWindow() {
   const { id } = useParams();
@@ -20,6 +21,7 @@ export default function ChatWindow() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [infoOpen, setInfoOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadChat = useCallback(async () => {
@@ -126,7 +128,9 @@ export default function ChatWindow() {
             <Typography variant="caption" color="success.main" fontWeight={700}>Connecté</Typography>
           </Box>
         </Stack>
-        <IconButton size="small"><MoreVertIcon /></IconButton>
+        <IconButton size="small" onClick={() => setInfoOpen(true)}>
+          <MoreVertIcon />
+        </IconButton>
       </Box>
 
       <Box sx={{ flex: 1, overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -151,6 +155,12 @@ export default function ChatWindow() {
         setMessage={setNewMessage}
         handleSend={handleSend}
         disabled={sending} 
+      />
+      
+      <ChatInfoDrawer 
+        open={infoOpen} 
+        onClose={() => setInfoOpen(false)} 
+        chat={chat} 
       />
     </Box>
   );

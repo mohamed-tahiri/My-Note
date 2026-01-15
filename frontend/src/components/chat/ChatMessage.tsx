@@ -5,13 +5,11 @@ import type { Message } from '@/types/message';
 interface ChatMessageProps {
   message: Message;
   isMe: boolean;
-  showTime?: boolean;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ 
   message, 
   isMe, 
-  showTime = true 
 }) => {
   return (
     <Box 
@@ -22,7 +20,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         alignItems: isMe ? 'flex-end' : 'flex-start',
         maxWidth: isMe ? '90%' : '85%', 
         width: 'fit-content',
-        mb: 1 // Petit espace entre les messages
+        '&:hover .time-caption': {
+          opacity: 1,
+          maxHeight: '20px', 
+          mt: 0.3,
+        }
       }}
     >
       <Paper 
@@ -45,20 +47,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         </Typography>
       </Paper>
 
-      {showTime && (
-        <Typography 
-          variant="caption" 
-          sx={{ 
-            mt: 0.5, 
-            px: 0.5,
-            color: 'text.disabled', 
-            fontSize: '0.65rem',
-            fontWeight: 600
-          }}
-        >
-          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </Typography>
-      )}
+      <Typography 
+        className="time-caption"
+        variant="caption" 
+        sx={{ 
+          px: 0.5,
+          color: 'text.disabled', 
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          opacity: 0,
+          maxHeight: 0, 
+          mt: 0,    
+          overflow: 'hidden',
+          transition: 'all 0.2s ease-in-out',
+          pointerEvents: 'none'
+        }}
+      >
+        {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </Typography>
     </Box>
   );
 };
