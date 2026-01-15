@@ -1,7 +1,8 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Box, Typography, Button, Container, Paper } from '@mui/material';
 import { Refresh as RefreshIcon } from '@mui/icons-material';
-const logger = { error: console.error }; 
+import { logger as Logger } from '@/utils/logger';
+const logger = { error: Logger.error }; 
 
 interface Props {
   children: ReactNode;

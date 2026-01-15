@@ -14,6 +14,7 @@ import { getById } from '@/api/tasksService';
 import type { Task } from '@/types/task';
 import { TaskStatus, type TaskStatusType } from '@/enums/task';
 import { TaskModal } from '@/components/tasks/TaskForm';
+import { logger } from '@/utils/logger';
 
 export default function TaskDetailPage() {
     const { id } = useParams();
@@ -25,13 +26,13 @@ export default function TaskDetailPage() {
     const fetchTask = useCallback(async () => {
         if (!id) return;
         try {
-        setLoading(true);
-        const res = await getById(Number(id)); 
-        setTask(res.data); 
+            setLoading(true);
+            const res = await getById(Number(id)); 
+            setTask(res.data); 
         } catch (error) {
-        console.error("Erreur TaskDetail:", error);
+            logger.error("Erreur TaskDetail:", error);
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
     }, [id]);
 

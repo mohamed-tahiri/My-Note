@@ -72,7 +72,7 @@ export default function ProfilePage() {
       </Stack>
 
       {message && (
-        <Alert severity={message.type} sx={{ mb: 4, borderRadius: '12px' }}>
+        <Alert severity={message.type} sx={{ mb: 4, borderRadius: '12px', color: "primary.main" }}>
           {message.text}
         </Alert>
       )}

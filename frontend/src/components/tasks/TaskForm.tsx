@@ -24,6 +24,7 @@ import { getAll } from '@/api/userService'; // Assurez-vous d'avoir ce service
 import type { Task, CreateTaskDto, UpdateTaskDto } from '@/types/task';
 import type { User } from '@/types/user';
 import { TaskStatus, type TaskStatusType } from '@/enums/task';
+import { logger } from '@/utils/logger';
 
 interface Props {
   noteId?: number;
@@ -53,7 +54,7 @@ export function TaskModal({ noteId, task, isOpen, onClose, onSaved }: Props) {
         const response = await getAll();
         setAvailableUsers(response.data);
       } catch (error) {
-        console.error("Erreur chargement utilisateurs:", error);
+        logger.error("Erreur chargement utilisateurs:", error);
       }
     };
     if (isOpen) fetchUsers();
@@ -97,7 +98,7 @@ export function TaskModal({ noteId, task, isOpen, onClose, onSaved }: Props) {
       onSaved();
       onClose();
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde de la tâche:", error);
+      logger.error("Erreur lors de la sauvegarde de la tâche:", error);
     } finally {
       setLoading(false);
     }
