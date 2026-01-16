@@ -20,6 +20,8 @@ export class AuthService {
     if (!isValid) throw new UnauthorizedException();
 
     const tokens = await this.generateTokens(user.id, user.email);
+
+    await this.usersService.update(user.id, { lastLogin: new Date() });
     await this.saveRefreshToken(user.id, tokens.refresh_token);
 
     this.setRefreshCookie(res, tokens.refresh_token);

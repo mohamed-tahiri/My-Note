@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem('access_token', access_token);
     const userData = await getCurrentUser();
     setUser(userData);
+    
+    return userData;
   };
 
   const logout = async () => {

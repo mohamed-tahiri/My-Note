@@ -28,8 +28,14 @@ export default function LoginPage() {
     const password = formData.get('password') as string;
 
     try {
-      await login({ email, password });
-      navigate('/notes'); 
+      const response = await login({ email, password });
+
+      const userRole = response?.role;
+      if (userRole === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/notes'); 
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.message || 'Identifiants incorrects');

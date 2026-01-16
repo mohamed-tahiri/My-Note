@@ -27,7 +27,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
 
       {/* Main App Shell */}
-      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route element={<ProtectedRoute allowedRoles={['USER']}><Layout /></ProtectedRoute>}>
         <Route path="/" element={<Navigate to="/notes" replace />} />
 
         {/* Section Notes */}
@@ -60,8 +60,7 @@ export default function AppRoutes() {
 
 
       {/* Admin */}
-      <Route path="admin" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          {/* This handles the redirect from /admin to /admin/overview */}
+      <Route path="admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="overview" replace />} />
           
           <Route path="overview" element={<OverviewPage />} />
