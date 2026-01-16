@@ -22,10 +22,3 @@ export const create = (data: CreateMessageDto) => api.post('/messages', data);
  * @returns Une promesse contenant le message mis à jour
  */
 export const update = (id: number, data: UpdateMessageDto) => api.patch(`/messages/${id}`, data);
-
-/**
- * Supprime un message par son ID.
- * @param id L'identifiant du message à supprimer
- * @returns Une promesse indiquant le succès de la suppression
- */
-export const deleteMessage = (id: number) => api.delete(`/messages/${id}`);

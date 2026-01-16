@@ -8,6 +8,7 @@ export interface Message {
   senderId: number;
   chat: Chat;
   chatId: number;
+  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,4 +21,5 @@ export interface CreateMessageDto {
 
 export interface UpdateMessageDto {
   content?: string;
+  isDeleted?: boolean;
 }
