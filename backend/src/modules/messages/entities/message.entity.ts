@@ -17,6 +17,9 @@ export class Message {
   @Column()
   content: string;
 
+  @Column({ default: false })
+  isDeleted: boolean;
+
   @ManyToOne(() => User, (user) => user.messages)
   sender: User;
 

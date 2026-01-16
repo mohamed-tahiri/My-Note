@@ -11,6 +11,7 @@ import { User } from '../users/entities/user.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ChatGateway } from '../chat/gateway/chat.gateway';
+import { UpdateMessageDto } from './dto/update-message.dto';
 
 @Injectable()
 export class MessagesService {
@@ -67,9 +68,6 @@ export class MessagesService {
     });
 
     if (!messageWithDetails) return savedMessage;
-    // 3. RÉCUPÉRATION DE L'ID DU CHAT
-    // savedMessage.chat peut être un objet complet ou juste un ID selon votre config
-    // On utilise l'ID du chat provenant du message chargé avec ses relations
     const chatId = messageWithDetails.chat.id;
 
     this.chatGateway.emitMessage(chatId, messageWithDetails);
@@ -89,5 +87,27 @@ export class MessagesService {
       relations: ['sender'],
       order: { createdAt: 'ASC' },
     });
+  }
+
+  async update(id: number, dto: UpdateMessageDto): Promise<Message> {
+    const message = await this.messageRepository.findOne({
+      where: { id },
+      relations: ['sender', 'chat'],
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message avec l'ID ${id} introuvable`);
+    }
+
+    message.content = dto.content ?? message.content;
+    message.isDeleted = dto.isDeleted ?? message.isDeleted;
+
+    const updatedMessage = await this.messageRepository.save(message);
+
+    const chatId = updatedMessage.chat.id;
+
+    this.chatGateway.emitMessage(chatId, updatedMessage);
+
+    return updatedMessage;
   }
 }
