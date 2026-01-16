@@ -17,7 +17,7 @@ export default function SideBar() {
             display: 'flex',
             flexDirection: 'column',
             bgcolor: 'white',
-            height: '95vh',
+            height: '100vh',
             position: 'sticky',
             top: 0
         }}>
@@ -30,28 +30,28 @@ export default function SideBar() {
                     <MenuButton 
                         icon={<LayoutDashboard size={18}/>} 
                         label="Overview" 
-                        active={isActive('/overview')} 
+                        active={isActive('/admin/overview')} 
                     />
                 </Link>
                 <Link to="/admin/infrastructure" style={{ textDecoration: 'none' }}>
                     <MenuButton 
                         icon={<Database size={18}/>} 
                         label="Infrastructure" 
-                        active={isActive('/infrastructure')} 
+                        active={isActive('/admin/infrastructure')} 
                     />
                 </Link>
                 <Link to="/admin/analytics" style={{ textDecoration: 'none' }}>
                     <MenuButton 
                         icon={<Activity size={18}/>} 
                         label="Analytics" 
-                        active={isActive('/analytics')} 
+                        active={isActive('/admin/analytics')} 
                     />
                 </Link>
                 <Link to="/admin/security" style={{ textDecoration: 'none' }}>
                     <MenuButton 
                         icon={<Shield size={18}/>} 
                         label="Security" 
-                        active={isActive('/security')} 
+                        active={isActive('/admin/security')} 
                     />
                 </Link>
             </Stack>
@@ -60,7 +60,7 @@ export default function SideBar() {
                 <MenuButton 
                     icon={<Settings size={18}/>} 
                     label="Settings" 
-                    active={isActive('/settings')} 
+                    active={isActive('/admin/settings')} 
                 />
             </Link>
         </Box>
