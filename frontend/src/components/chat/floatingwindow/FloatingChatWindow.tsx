@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Paper, Box, Divider, CircularProgress, Typography } from '@mui/material';
+import { Paper, Box, Divider, CircularProgress, Typography, IconButton, alpha } from '@mui/material';
 import type { Chat } from '@/types/chat';
 import type { Message } from '@/types/message';
 import { useChatSocket } from '@/hooks/useChatSocket';
 import { useAuth } from '@/hooks/useAuth';
 import { getById } from '@/api/chatService';
-import { create } from '@/api/messagesService';
+import { create, update } from '@/api/messagesService'; // Import de update
 import { ChatMessage } from '../ChatMessage';
 import MinimizedChat from './MinimizedChat';
 import Header from './Header';  
@@ -23,11 +23,13 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
     const [chat, setChat] = useState<Chat | null>(null);
     const [message, setMessage] = useState('');
     const [minimized, setMinimized] = useState(false);
-    const [loading, setLoading] = useState(true); // Initialisé à true pour le premier chargement
-    const [sending, setSending] = useState(false); // État spécifique pour l'envoi
+    const [loading, setLoading] = useState(true);
+    const [sending, setSending] = useState(false);
+    
+    // Nouveaux états pour l'édition
+    const [editingMessage, setEditingMessage] = useState<Message | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Chargement initial du chat
     const loadChat = useCallback(async () => {
         if (!chatId) return;
         try {
@@ -45,63 +47,95 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
         loadChat();
     }, [loadChat]);
 
-    // Gestion des Sockets
+    // Gestion des Sockets (Synchronisé avec ChatWindow)
     useEffect(() => {
         if (chatId && socket) {
             joinChat(chatId);
             
-            socket.on('newMessage', (newMsg: Message) => {
+            const handleNewMessage = (newMsg: Message) => {
                 if (newMsg.chat.id === chatId) {
-                    setChat(prev => prev ? {
-                        ...prev,
-                        messages: [...(prev.messages || []), newMsg],
-                        lastMessage: newMsg 
-                    } : null);
+                    setChat(prev => {
+                        if (!prev) return null;
+                        const isExisting = prev.messages.some(m => m.id === newMsg.id);
+                        
+                        if (isExisting) {
+                            // UPDATE (Edition ou Suppression)
+                            return {
+                                ...prev,
+                                messages: prev.messages.map(m => m.id === newMsg.id ? newMsg : m),
+                                lastMessage: prev.lastMessage?.id === newMsg.id ? newMsg : prev.lastMessage
+                            };
+                        } else {
+                            // NOUVEAU MESSAGE
+                            return {
+                                ...prev,
+                                messages: [...(prev.messages || []), newMsg],
+                                lastMessage: newMsg 
+                            };
+                        }
+                    });
                 }
-            });
-        }
+            };
 
-        return () => {
-            if (chatId) {
+            socket.on('newMessage', handleNewMessage);
+
+            return () => {
                 leaveChat(chatId);
-                socket?.off('newMessage');
-            }
-        };
+                socket.off('newMessage', handleNewMessage);
+            };
+        }
     }, [chatId, socket, joinChat, leaveChat]);
 
-    // Scroll automatique
     useEffect(() => {
         if (!minimized && chat?.messages) {
             scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [chat?.messages, minimized]);
 
-    // Envoi de message avec try/catch et loading
+    // Fonctions CRUD
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         const trimmedMessage = message.trim();
-        
         if (!trimmedMessage || !user?.id || sending) return;
 
         setSending(true);
         try {
-            const payload = {
-                chatId,
-                content: trimmedMessage,
-                senderId: user.id
-            };
-
-            const response = await create(payload);
-            const sendedMessage = response.data;
-
-            socket?.emit('sendMessage', sendedMessage);
-
+            if (editingMessage) {
+                // UPDATE
+                const res = await update(editingMessage.id, { content: trimmedMessage });
+                socket?.emit('updateMessage', res.data);
+                setEditingMessage(null);
+            } else {
+                // CREATE
+                const payload = { chatId, content: trimmedMessage, senderId: user.id };
+                const response = await create(payload);
+                socket?.emit('sendMessage', response.data);
+            }
             setMessage('');
         } catch (error) {
-            logger.error("Erreur lors de l'envoi du message:", error);
+            logger.error("Erreur lors de l'envoi/maj du message:", error);
         } finally {
             setSending(false);
         }
+    };
+
+    const handleDeleteMessage = async (messageId: number) => {
+        try {
+            // Suppression logique via l'update
+            await update(messageId, { isDeleted: true });
+        } catch (err) {
+            logger.error("Erreur suppression:", err);
+        }
+    };
+
+    const handleEditClick = (msg: Message) => {
+        setEditingMessage(msg);
+        setMessage(msg.content);
+    };
+
+    const cancelEdit = () => {
+        setEditingMessage(null);
+        setMessage('');
     };
 
     if (loading && !chat) {
@@ -122,15 +156,15 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
         <Paper
             elevation={6}
             sx={{
-                width: 360,
+                width: { xs: '100vw', sm: 360 }, // Responsive width
                 position: 'fixed',
-                bottom: 20,
-                right: 110,
+                bottom: { xs: 0, sm: 20 },
+                right: { xs: 0, sm: 110 },
                 zIndex: 1300,
-                borderRadius: '16px',
+                borderRadius: { xs: 0, sm: '16px' },
                 display: 'flex',
                 flexDirection: 'column',
-                height: 450,
+                height: { xs: '100%', sm: 450 },
                 overflow: 'hidden',
                 border: '1px solid',
                 borderColor: 'divider',
@@ -142,14 +176,16 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
             <Box sx={{ flex: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 1, bgcolor: '#f8fafc' }}>
                 {chat.messages?.length === 0 ? (
                     <Typography variant="caption" sx={{ textAlign: 'center', mt: 2, color: 'text.disabled' }}>
-                        Aucun message. Dites bonjour !
+                        Aucun message.
                     </Typography>
                 ) : (
                     chat.messages?.map((msg: Message) => (
                         <ChatMessage
                             key={msg.id} 
                             message={msg} 
-                            isMe={msg.sender.id === Number(user?.id)} 
+                            isMe={msg.sender.id === Number(user?.id)}
+                            onDelete={handleDeleteMessage}
+                            onEdit={handleEditClick}
                         />   
                     ))
                 )}
@@ -157,6 +193,14 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
             </Box>
 
             <Divider />
+
+            {/* Barre d'édition spécifique pour la version flottante */}
+            {editingMessage && (
+                <Box sx={{ px: 2, py: 0.5, bgcolor: alpha('#2563eb', 0.05), display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 700 }}>Modifier le message...</Typography>
+                    <IconButton size="small" onClick={cancelEdit} sx={{ fontSize: '0.65rem', p: 0 }}>Annuler</IconButton>
+                </Box>
+            )}
             
             <ChatInput
                 variant="compact"
@@ -164,7 +208,7 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
                 setMessage={setMessage}
                 handleSend={handleSend}
                 disabled={sending} 
-                placeholder="Écrire..."
+                placeholder={editingMessage ? "Modifier..." : "Écrire..."}
             />
         </Paper>
     );

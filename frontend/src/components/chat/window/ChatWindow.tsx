@@ -87,7 +87,6 @@ export default function ChatWindow() {
     }
   }, [chat?.messages]);
 
-  // Logique d'envoi (Create / Update)
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const content = newMessage.trim();
