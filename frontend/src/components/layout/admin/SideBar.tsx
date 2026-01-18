@@ -17,7 +17,7 @@ export default function SideBar() {
                 p: 3,
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: 'white',
+                bgcolor: 'background.default',
                 height: '100vh',
                 position: 'sticky',
                 top: 0,

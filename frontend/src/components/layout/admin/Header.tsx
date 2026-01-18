@@ -11,7 +11,7 @@ export function Header({ onMenuClick }: HeaderAdminProps) {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                bgcolor: 'white',
+                bgcolor: 'background.default',
                 borderBottom: '1px solid #E2E8F0',
             }}
         >
@@ -30,7 +30,7 @@ export function Header({ onMenuClick }: HeaderAdminProps) {
                     alignItems: 'center',
                     width: { xs: '100%', sm: 400 }, // S'adapte à la largeur
                     borderRadius: '8px',
-                    bgcolor: '#F8FAFC',
+                    bgcolor: 'background.default',
                 }}
                 elevation={0}
             >
