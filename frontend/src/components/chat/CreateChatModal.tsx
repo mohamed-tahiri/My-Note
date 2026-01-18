@@ -1,73 +1,52 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Dialog, DialogTitle, DialogContent, DialogActions, 
   Button, TextField, Autocomplete, Avatar, Box, 
   Stack, Typography, CircularProgress
 } from '@mui/material';
-import { getAll as getAllUsers } from '@/api/userService';
-import { create as createChat } from '@/api/chatService';
+
+import { useUsers } from '@/hooks/queries/useUserQueries';
+import { useChatMutations } from '@/hooks/queries/useChatQueries';
 import type { User } from '@/types/user';
-import type { Chat, CreateChatDto } from '@/types/chat';
-import { logger } from '@/utils/logger';
+import type { CreateChatDto } from '@/types/chat';
+import type { CreateChatModalProps } from '@/types/props';
 
-interface CreateChatModalProps {
-  open: boolean;
-  onClose: () => void;
-  onChatCreated: (chat: Chat) => void;
-}
+export function CreateChatModal({ open, onClose }: CreateChatModalProps) {
+  // 1. DATA FETCHING (Utilise le cache global des utilisateurs)
+  const { data: users = [], isLoading: fetchingUsers } = useUsers();
+  
+  // 2. MUTATIONS (Gère l'invalidation du cache 'chats' automatiquement)
+  const { createChat } = useChatMutations();
 
-export function CreateChatModal({ open, onClose, onChatCreated }: CreateChatModalProps) {
-  const [users, setUsers] = useState<User[]>([]);
+  // UI STATES
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [chatName, setChatName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [fetchingUsers, setFetchingUsers] = useState(false);
-
-  // Charger les utilisateurs à l'ouverture du modal
-  useEffect(() => {
-    const loadUsers = async () => {
-      setFetchingUsers(true);
-      try {
-        const res = await getAllUsers();
-        setUsers(res.data);
-      } catch (err) {
-        logger.error("Erreur chargement utilisateurs:", err);
-      } finally {
-        setFetchingUsers(false);
-      }
-    };
-    if (open) loadUsers();
-  }, [open]);
-
-  // Fonction de création
-  const handleCreate = async () => {
-    if (selectedUsers.length === 0) return;
-    setLoading(true);
-    
-    try {
-      const isGroup = selectedUsers.length > 1;
-
-      const payload: CreateChatDto = {
-        name: isGroup ? (chatName || 'Nouveau groupe') : '',
-        type: isGroup ? 'task_group' : 'private',
-        participantIds: selectedUsers.map(u => u.id),
-      };
-
-      const res = await createChat(payload);
-      onChatCreated(res.data);
-      handleInternalClose();
-    } catch (err) {
-      logger.error("Erreur lors de la création du chat:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Reset des champs lors de la fermeture
   const handleInternalClose = () => {
     setSelectedUsers([]);
     setChatName('');
     onClose();
+  };
+
+  // Fonction de création
+  const handleCreate = () => {
+    if (selectedUsers.length === 0) return;
+    
+    const isGroup = selectedUsers.length > 1;
+
+    const payload: CreateChatDto = {
+      name: isGroup ? (chatName || 'Nouveau groupe') : '',
+      type: isGroup ? 'task_group' : 'private',
+      participantIds: selectedUsers.map(u => u.id),
+    };
+
+    // On utilise mutate pour déclencher la création
+    createChat.mutate(payload, {
+      onSuccess: () => {
+        handleInternalClose();
+      }
+    });
   };
 
   return (
@@ -88,10 +67,10 @@ export function CreateChatModal({ open, onClose, onChatCreated }: CreateChatModa
             multiple
             options={users}
             loading={fetchingUsers}
-            // Sécurité contre les prénoms/noms indéfinis
             getOptionLabel={(option) => 
               `${option.firstName ?? ''} ${option.lastName ?? ''}`.trim() || option.email
             }
+            value={selectedUsers}
             onChange={(_, value) => setSelectedUsers(value)}
             renderInput={(params) => (
               <TextField 
@@ -146,16 +125,15 @@ export function CreateChatModal({ open, onClose, onChatCreated }: CreateChatModa
         <Button 
           onClick={handleCreate} 
           variant="contained" 
-          disabled={selectedUsers.length === 0 || loading}
+          disabled={selectedUsers.length === 0 || createChat.isPending}
           sx={{ 
             borderRadius: '8px', 
             fontWeight: 700, 
             px: 4,
             boxShadow: 'none',
-            '&:hover': { boxShadow: 'none' }
           }}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : 'Démarrer'}
+          {createChat.isPending ? <CircularProgress size={24} color="inherit" /> : 'Démarrer'}
         </Button>
       </DialogActions>
     </Dialog>

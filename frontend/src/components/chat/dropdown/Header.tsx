@@ -1,11 +1,7 @@
 import { alpha, Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-
-interface HeaderProps {
-  handleClose: () => void;
-}
-
+import type { HeaderProps } from "@/types/props";
 
 export default function Header({ handleClose } :HeaderProps) {
     const navigate = useNavigate();

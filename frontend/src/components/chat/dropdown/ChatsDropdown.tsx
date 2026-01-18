@@ -1,79 +1,68 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Menu, Typography, List, Divider, CircularProgress } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Box, Menu, List, Divider } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+
 import { useAuth } from '@/hooks/useAuth';
-import type { Chat } from '@/types/chat';
-import { getChatsByUser } from '@/api/chatService';
-import FloatingChatWindow from '../floatingwindow/FloatingChatWindow';
+import { useChats, chatKeys } from '@/hooks/queries/useChatQueries';
 import { useChatSocket } from '@/hooks/useChatSocket';
-import type { Message } from '@/types/message';
+import FloatingChatWindow from '../floatingwindow/FloatingChatWindow';
+import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
+import { ChatItem } from '../ChatItem';
 import Icon from './Icon';
 import Header from './Header';
-import { ChatItem } from '../ChatItem';
-import { logger } from '@/utils/logger';
+
+import type { Chat } from '@/types/chat';
+import type { Message } from '@/types/message';
 
 export default function ChatsDropdown() {
-  const { socket } = useChatSocket();
   const { user } = useAuth();
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { socket } = useChatSocket();
+  const queryClient = useQueryClient();
+
+  // UI States
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openChatId, setOpenChatId] = useState<number | null>(null);
-  
   const open = Boolean(anchorEl);
 
-  const loadChats = useCallback(async () => {
-    if (!user?.id) return;
-    setLoading(true);
-    try {
-        const res = await getChatsByUser(Number(user.id));
-        const sortedChats = res.data.sort((a: Chat, b: Chat) => 
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
-        setChats(sortedChats);
-    } catch (error) {
-      logger.error("Erreur chargement chats", error);
-    } finally {
-        setLoading(false);
-    }
-  }, [user?.id]);
+  // 1. TanStack Query : Récupération des conversations
+  // On utilise le hook centralisé. Les données sont triées par updatedAt via useMemo pour la performance.
+  const { data: chatsData, isLoading, error } = useChats(Number(user?.id));
 
-  useEffect(() => {
-    if (open) {
-      loadChats();
-    }
-  }, [open, loadChats]);
+  const sortedChats = useMemo(() => {
+    if (!chatsData) return [];
+    return [...chatsData].sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }, [chatsData]);
 
+  // 2. Temps réel : Synchronisation du cache global
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user?.id) return;
     
-    socket.on('newMessage', (newMsg: Message) => {
-      setChats(prev => {
-        const updated = prev.map(c => 
-          c.id === newMsg.chatId ? { ...c, messages: [...(c.messages || []), newMsg], updatedAt: new Date().toISOString() } : c
+    const handleNewMessage = (newMsg: Message) => {
+      queryClient.setQueryData(chatKeys.user(Number(user.id)), (old: Chat[] | undefined) => {
+        if (!old) return [];
+        return old.map(c => 
+          c.id === newMsg.chat.id 
+            ? { ...c, updatedAt: new Date().toISOString(), lastMessage: newMsg } 
+            : c
         );
-        return updated.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
       });
-    });
+    };
 
+    socket.on('newMessage', handleNewMessage);
     return () => { socket.off('newMessage'); };
-  }, [socket]);
+  }, [socket, user?.id, queryClient]);
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const unreadCount = chats.length; 
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   return (
     <>
       <Box>
         <Icon
           handleOpen={handleOpen} 
-          unreadCount={unreadCount} 
+          unreadCount={sortedChats.length} 
         />
         <Menu
           anchorEl={anchorEl}
@@ -94,23 +83,17 @@ export default function ChatsDropdown() {
             }
           }}
         >
-          
           <Header handleClose={handleClose} />
           <Divider />
 
-          <List sx={{ p: 0 }}>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress size={24} />
-              </Box>
-            ) : chats.length === 0 ? (
-              <Box sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Aucune conversation
-                </Typography>
-              </Box>
-            ) : (
-              chats.map((chat) => (
+          <AsyncWrapper 
+            loading={isLoading} 
+            error={error} 
+            isEmpty={sortedChats.length === 0}
+            emptyMessage="Aucune conversation"
+          >
+            <List sx={{ p: 0 }}>
+              {sortedChats.map((chat) => (
                 <React.Fragment key={chat.id}>
                   <ChatItem
                     chat={chat}
@@ -123,11 +106,12 @@ export default function ChatsDropdown() {
                   />
                   <Divider component="li" sx={{ mx: 2, opacity: 0.5 }} />
                 </React.Fragment>
-              ))
-            )}
-          </List>
+              ))}
+            </List>
+          </AsyncWrapper>
         </Menu>
       </Box>
+
       {openChatId && (
         <FloatingChatWindow
           chatId={openChatId} 

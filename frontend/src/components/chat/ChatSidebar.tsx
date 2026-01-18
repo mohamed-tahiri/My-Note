@@ -5,16 +5,8 @@ import {
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
-import type { Chat } from '@/types/chat';
 import { ChatItem } from './ChatItem';
-
-interface ChatSidebarProps {
-  chats: Chat[];
-  loading: boolean;
-  activeChatId?: string;
-  currentUserId: number;
-  onOpenCreateModal: () => void;
-}
+import type { ChatSidebarProps } from '@/types/props';
 
 export function ChatSidebar({ chats, loading, activeChatId, currentUserId, onOpenCreateModal }: ChatSidebarProps) {
   const navigate = useNavigate();
@@ -23,14 +15,12 @@ export function ChatSidebar({ chats, loading, activeChatId, currentUserId, onOpe
     <Paper 
       elevation={0}
       sx={{ 
-        // RESPONSIVE WIDTH: 80px sur mobile (xs), 350px à partir de desktop (md)
         width: { xs: 95, md: 350 }, 
         borderRight: '1px solid', 
         borderColor: 'divider',
         display: 'flex', 
         flexDirection: 'column', 
         borderRadius: 0,
-        // Animation de transition fluide lors du redimensionnement
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden',
         height: '100%'

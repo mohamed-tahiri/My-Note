@@ -1,12 +1,6 @@
 import { Avatar, Badge, Box, IconButton, Tooltip } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
-import type { Chat } from "@/types/chat";
-
-interface MinimizedChatProps {
-    chat: Chat,
-    setMinimized: (value: boolean) => void,
-    onClose: () => void;
-}
+import type { MinimizedChatProps } from "@/types/props";
 
 export default function MinimizedChat({ chat, setMinimized, onClose } : MinimizedChatProps) {
     return (

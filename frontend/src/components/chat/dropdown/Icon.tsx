@@ -1,10 +1,6 @@
 import { Badge, IconButton, Tooltip } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat" 
-
-interface IconProps {
-  handleOpen: (event: React.MouseEvent<HTMLElement>) => void;
-  unreadCount: number;
-}
+import type { IconProps } from "@/types/props";
 
 export default function Icon({ handleOpen, unreadCount }: IconProps) {
     return (

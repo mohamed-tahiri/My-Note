@@ -7,13 +7,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import type { Chat } from '@/types/chat';
-
-interface ChatInfoDrawerProps {
-  open: boolean;
-  onClose: () => void;
-  chat: Chat;
-}
+import type { ChatInfoDrawerProps } from '@/types/props';
 
 export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({ open, onClose, chat }) => {
   return (
@@ -23,8 +17,6 @@ export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({ open, onClose, c
           <Typography variant="h6" fontWeight={800}>Détails</Typography>
           <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
         </Stack>
-
-        {/* Profil du Chat */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
           <Avatar sx={{ width: 80, height: 80, fontSize: '2rem', mx: 'auto', mb: 2, bgcolor: 'primary.main' }}>
             {chat.name?.charAt(0) || '?'}
@@ -36,8 +28,6 @@ export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({ open, onClose, c
         </Box>
 
         <Divider sx={{ my: 2 }} />
-
-        {/* Membres */}
         <Typography variant="overline" color="text.secondary" fontWeight={700}>Membres</Typography>
         <List dense>
           {chat.participants?.map((member) => (
@@ -53,10 +43,7 @@ export const ChatInfoDrawer: React.FC<ChatInfoDrawerProps> = ({ open, onClose, c
             </ListItem>
           ))}
         </List>
-
         <Divider sx={{ my: 2 }} />
-
-        {/* Actions */}
         <Typography variant="overline" color="text.secondary" fontWeight={700}>Actions</Typography>
         <Stack spacing={1} mt={1}>
           <Button startIcon={<LogoutIcon />} color="error" fullWidth sx={{ justifyContent: 'flex-start' }}>

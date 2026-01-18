@@ -5,27 +5,14 @@ import {
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import GroupIcon from '@mui/icons-material/Group';
-import type { Chat } from '@/types/chat';
 import type { User } from '@/types/user';
-
-interface ChatItemProps {
-  chat: Chat;
-  currentUserId: number;
-  isActive?: boolean;
-  onClick: () => void;
-  variant?: 'sidebar' | 'dropdown';
-}
+import type { ChatItemProps } from '@/types/props';
 
 export const ChatItem: React.FC<ChatItemProps> = ({ 
-  chat, 
-  currentUserId, 
-  isActive = false, 
-  onClick,
-  variant = 'sidebar'
+  chat, currentUserId, isActive = false, onClick, variant = 'sidebar'
 }) => {
   const isGroup = chat.type === 'task_group';
   
-  // Logique de nom : Nom du groupe OU nom du participant (autre que soi-même)
   const displayName = chat.name || 
     chat.participants.find((p: User) => p.id !== currentUserId)?.firstName || "Discussion";
   

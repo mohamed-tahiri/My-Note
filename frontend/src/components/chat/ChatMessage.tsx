@@ -3,15 +3,7 @@ import { Box, Paper, Typography, alpha, IconButton, Menu, MenuItem, ListItemIcon
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import type { Message } from '@/types/message';
-import { logger } from '@/utils/logger';
-
-interface ChatMessageProps {
-  message: Message;
-  isMe: boolean;
-  onDelete?: (id: number) => void;
-  onEdit?: (message: Message) => void;
-}
+import type { ChatMessageProps } from '@/types/props';
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isMe, onDelete, onEdit }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -20,9 +12,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, isMe, onDelet
   const handleCloseMenu = () => setAnchorEl(null);
 
   if (message.isDeleted) {
-
-    logger.warn(message);
-
     return (
       <Box sx={{ alignSelf: isMe ? 'flex-end' : 'flex-start', mb: 1 }}>
         <Typography variant="caption" sx={{ fontStyle: 'italic', color: 'text.disabled', px: 2 }}>

@@ -1,15 +1,9 @@
 import { Avatar, Box, IconButton, Stack, Typography } from "@mui/material";
 import RemoveIcon from '@mui/icons-material/Remove';
 import CloseIcon from '@mui/icons-material/Close';
-import type { Chat } from "@/types/chat";
+import type { HeaderChatProps } from "@/types/props";
 
-interface HeaderProps {
-    chat: Chat,
-    setMinimized: (value: boolean) => void,
-    onClose: () => void;
-}
-
-export default function Header({ chat, setMinimized, onClose } : HeaderProps) {
+export default function Header({ chat, setMinimized, onClose } : HeaderChatProps) {
     return (
         <Box sx={{ 
             p: 1.5, bgcolor: 'primary.main', color: 'white', 
