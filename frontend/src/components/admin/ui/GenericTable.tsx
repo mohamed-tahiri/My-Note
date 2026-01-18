@@ -28,7 +28,7 @@ export const GenericTable = <T extends { id: string | number }>({
                 sx={{ borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: 'none' }}
             >
                 <Table>
-                    <TableHead sx={{ bgcolor: '#F8FAFC' }}>
+                    <TableHead sx={{ bgcolor: 'background.default' }}>
                         <TableRow>
                             {columns.map((col, index) => (
                                 <TableCell

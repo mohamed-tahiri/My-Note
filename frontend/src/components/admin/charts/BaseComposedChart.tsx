@@ -1,4 +1,4 @@
-import type { BaseComposedChartProps } from '@/types/props';
+import type { BaseComposedChartProps } from '@/types/admin';
 import { Box, Paper, Typography } from '@mui/material';
 import {
     Bar,

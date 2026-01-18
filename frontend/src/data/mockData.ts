@@ -1,7 +1,7 @@
 import React from 'react';
-import type { Column } from '@/components/admin/ui/GenericTable';
 import { Chip, Stack, Typography } from '@mui/material';
 import { Globe, Lock, Unlock } from 'lucide-react';
+import type { Column } from '@/types/admin';
 
 export interface PerformanceData {
     name: string;
