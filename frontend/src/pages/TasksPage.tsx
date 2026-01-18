@@ -1,109 +1,57 @@
-import { useCallback, useEffect, useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Fab, 
-  Stack, 
-  CircularProgress, 
-  Fade 
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-
-import { getTasksByUser, deleteTask, update } from '@/api/tasksService';
+import { useState } from 'react';
+import { Box, Typography, Stack } from '@mui/material';
+import { useTasksByUser, useTaskMutations } from '@/hooks/queries/useTaskQueries';
+import { useAuth } from '@/hooks/useAuth';
 import { TaskList } from '@/components/tasks/TaskList';
 import { TaskModal } from '@/components/tasks/TaskForm';
-import { useAuth } from '@/hooks/useAuth';
-import { logger } from '@/utils/logger';
-import type { Task } from '@/types/task';
-import { EmptyState } from '@/components/ui/EmptyState';
+import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TaskStatus, type TaskStatusType } from '@/enums/task';
+import type { Task } from '@/types/task';
+import FadButton from '@/components/ui/FadButton';
 
 export default function TasksPage() {
   const { user } = useAuth();
+  
+  // 1. DATA FETCHING (TanStack Query)
+  const { data: tasks, isLoading, error, refetch } = useTasksByUser(Number(user?.id));
+
+  // 2. MUTATIONS (Centralisées)
+  const { updateTask, deleteTask } = useTaskMutations();
+
+  // 3. UI STATES
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const loadTasks =  useCallback(async () => {
-    if (!user?.id) return;
-    setLoading(true);
-    try {
-      const res = await getTasksByUser(Number(user.id)); 
-      setTasks(res.data);
-    } catch (error) {
-      logger.error('Failed to load tasks', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
+  const handleToggleStatus = (task: Task, newStatus?: string) => {
+    const targetStatus = newStatus || 
+      (task.status === TaskStatus.COMPLETED ? TaskStatus.PENDING : TaskStatus.COMPLETED);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
-
-
-  const openDeleteConfirm = (id: number) => {
-    setSelectedId(id);
-    setConfirmOpen(true);
+    updateTask.mutate({ 
+      id: task.id, 
+      data: { status: targetStatus as TaskStatusType } 
+    });
   };
 
-
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (selectedId) {
-      try {
-        await deleteTask(selectedId);
-        await loadTasks();
-        setConfirmOpen(false);
-      } catch (error) {
-        logger.error('Delete failed', error);
-      }
+      deleteTask.mutate(selectedId, {
+        onSuccess: () => setConfirmOpen(false)
+      });
     }
   };
 
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
+  const onHandleFad = () => {
+    setEditingTask(null); 
     setIsTaskModalOpen(true);
-  };
-
-  const handleToggleStatus = async (task: Task, newStatus?: string) => {
-    try {
-      let targetStatus: string;
-
-      if (newStatus) {
-        targetStatus = newStatus;
-      } else {
-        targetStatus = task.status === TaskStatus.COMPLETED 
-          ? TaskStatus.PENDING 
-          : TaskStatus.COMPLETED;
-      }
-
-      await update(task.id, { status: targetStatus as TaskStatusType });
-      
-      loadTasks(); 
-    } catch (error) {
-      logger.error('Erreur lors du changement de statut', error);
-    }
-  };
-
-  const handleCreate = () => {
-    setEditingTask(null);
-    setIsTaskModalOpen(true);
-  };
+  }
 
   return (
     <Box sx={{ pb: 8 }}>
       {/* Header */}
-      <Stack 
-        direction="row" 
-        justifyContent="space-between" 
-        alignItems="center" 
-        sx={{ mb: 4 }}
-      >
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main' }}>
             Tâches
@@ -114,61 +62,40 @@ export default function TasksPage() {
         </Box>
       </Stack>
 
-      {/* Modal de création/édition */}
+      {/* Utilisation du AsyncWrapper amélioré */}
+      <AsyncWrapper
+        loading={isLoading}
+        error={error}
+        isEmpty={!tasks || tasks.length === 0}
+        emptyMessage="Toutes les tâches sont terminées ! Ou vous n'en avez pas encore créé."
+        onRetry={() => refetch()}
+      >
+        <TaskList 
+          tasks={tasks || []}
+          onEdit={(task) => { setEditingTask(task); setIsTaskModalOpen(true); }}
+          onDelete={(id) => { setSelectedId(id); setConfirmOpen(true); }}
+          onToggleStatus={handleToggleStatus}
+        />
+      </AsyncWrapper>
+
+      {/* Modals & Dialogs */}
       <TaskModal
         key={editingTask?.id || 'new-global-task'}
-        noteId={0} // 0 ou null si la tâche n'est pas liée à une note spécifique
+        noteId={0}
         task={editingTask}
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
-        onSaved={loadTasks}
       />
-
-      {/* État de chargement */}
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-          <CircularProgress />
-        </Box>
-      ) : tasks.length === 0 ? (
-        <EmptyState
-          icon={AssignmentTurnedInIcon}
-          title="Toutes les tâches sont terminées !"
-          description="Ou vous n'en avez pas encore créé pour cette catégorie."
-        />
-      ) : (
-        <Fade in={!loading}>
-          <Box>
-            <TaskList 
-              tasks={tasks}
-              onEdit={handleEdit}
-              onDelete={openDeleteConfirm}
-              onToggleStatus={handleToggleStatus}
-            />
-          </Box>
-        </Fade>
-      )}
 
       <ConfirmDialog
         isOpen={confirmOpen}
-        title="Confirmer la suppression"
-        description="Cette action est irréversible. Voulez-vous vraiment supprimer cet élément ?"
+        title="Supprimer la tâche ?"
+        description=''
         onConfirm={handleConfirmDelete}
         onClose={() => setConfirmOpen(false)}
       />
-
-      {/* Bouton d'ajout flottant */}
-      <Fab 
-        color="primary" 
-        onClick={handleCreate}
-        sx={{ 
-          position: 'fixed', 
-          bottom: { xs: 80, md: 40 }, 
-          right: { xs: 20, md: 40 },
-          boxShadow: '0px 4px 20px rgba(15, 23, 42, 0.3)'
-        }}
-      >
-        <AddIcon />
-      </Fab>
+            
+      <FadButton onHandleFad={onHandleFad}  />
     </Box>
   );
 }

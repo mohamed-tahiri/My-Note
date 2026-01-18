@@ -9,17 +9,10 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import type { Task } from "@/types/task";
 import { TaskStatus } from "@/enums/task";
+import type { TaskItemProps } from '@/types/props';
 
-interface Props {
-  task: Task;
-  onEdit: (task: Task) => void;
-  onDelete: (id: number) => void;
-  onToggleStatus?: (task: Task, newStatus?: string) => void;
-}
-
-export function TaskItem({ task, onEdit, onDelete, onToggleStatus }: Props) {
+export function TaskItem({ task, onEdit, onDelete, onToggleStatus }: TaskItemProps) {
   const isCompleted = task.status === TaskStatus.COMPLETED;
 
   const moveNext = task.status === TaskStatus.PENDING ? TaskStatus.IN_PROGRESS : 

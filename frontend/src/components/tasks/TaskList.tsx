@@ -1,18 +1,11 @@
 import { Stack, Box, Typography, Fade, Grid } from '@mui/material';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import type { Task } from '@/types/task';
 import { TaskItem } from './TaskItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { TaskStatus } from '@/enums/task';
+import type { TaskListProps } from '@/types/props';
 
-interface Props {
-  tasks: Task[];
-  onEdit: (task: Task) => void;
-  onDelete: (id: number) => void;
-  onToggleStatus?: (task: Task) => void;
-}
-
-export function TaskList({ tasks, onEdit, onDelete, onToggleStatus }: Props) {
+export function TaskList({ tasks, onEdit, onDelete, onToggleStatus }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <EmptyState 
