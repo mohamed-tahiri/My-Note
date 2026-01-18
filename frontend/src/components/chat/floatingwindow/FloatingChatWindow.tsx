@@ -20,7 +20,7 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const { socket, joinChat, leaveChat } = useChatSocket();
-    
+
     const { data: chat, isLoading: chatLoading } = useChatDetail(chatId);
     const { data: messages, isLoading: messagesLoading } = useMessages(chatId);
     const { sendMessage, updateMessage } = useMessageMutations();
@@ -36,11 +36,14 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
             joinChat(chatId);
             const handleNewMessage = (newMsg: Message) => {
                 if (newMsg.chat.id === chatId) {
-                    queryClient.setQueryData(messageKeys.byChat(chatId), (old: Message[] | undefined) => {
-                        const exists = old?.some(m => m.id === newMsg.id);
-                        if (exists) return old?.map(m => m.id === newMsg.id ? newMsg : m);
-                        return [...(old || []), newMsg];
-                    });
+                    queryClient.setQueryData(
+                        messageKeys.byChat(chatId),
+                        (old: Message[] | undefined) => {
+                            const exists = old?.some((m) => m.id === newMsg.id);
+                            if (exists) return old?.map((m) => (m.id === newMsg.id ? newMsg : m));
+                            return [...(old || []), newMsg];
+                        }
+                    );
                 }
             };
             socket.on('newMessage', handleNewMessage);
@@ -63,20 +66,26 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
         if (!content || !user?.id) return;
 
         if (editingMessage) {
-            updateMessage.mutate({ id: editingMessage.id, dto: { content } }, {
-                onSuccess: (res) => {
-                    socket?.emit('updateMessage', res);
-                    setEditingMessage(null);
-                    setMessageText('');
+            updateMessage.mutate(
+                { id: editingMessage.id, dto: { content } },
+                {
+                    onSuccess: (res) => {
+                        socket?.emit('updateMessage', res);
+                        setEditingMessage(null);
+                        setMessageText('');
+                    },
                 }
-            });
+            );
         } else {
-            sendMessage.mutate({ chatId, content, senderId: user.id }, {
-                onSuccess: (res) => {
-                    socket?.emit('sendMessage', res);
-                    setMessageText('');
+            sendMessage.mutate(
+                { chatId, content, senderId: user.id },
+                {
+                    onSuccess: (res) => {
+                        socket?.emit('sendMessage', res);
+                        setMessageText('');
+                    },
                 }
-            });
+            );
         }
     };
 
@@ -109,31 +118,41 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
         >
             <AsyncWrapper loading={chatLoading || messagesLoading} error={null}>
                 {chat && (
-                    <> 
+                    <>
                         <Header chat={chat} setMinimized={setMinimized} onClose={onClose} />
-                        
-                        <Box sx={{ 
-                            flex: 1,
-                            overflowY: 'auto', 
-                            p: 2, 
-                            display: 'flex', 
-                            flexDirection: 'column', 
-                            gap: 1, 
-                            bgcolor: '#f8fafc' 
-                        }}>
+
+                        <Box
+                            sx={{
+                                flex: 1,
+                                overflowY: 'auto',
+                                p: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 1,
+                                bgcolor: '#f8fafc',
+                            }}
+                        >
                             {messages?.length === 0 ? (
-                                <Typography variant="caption" sx={{ textAlign: 'center', mt: 2, color: 'text.disabled' }}>
+                                <Typography
+                                    variant="caption"
+                                    sx={{ textAlign: 'center', mt: 2, color: 'text.disabled' }}
+                                >
                                     Aucun message.
                                 </Typography>
                             ) : (
                                 messages?.map((msg: Message) => (
                                     <ChatMessage
-                                        key={msg.id} 
-                                        message={msg} 
+                                        key={msg.id}
+                                        message={msg}
                                         isMe={msg.sender.id === Number(user?.id)}
-                                        onDelete={(id) => updateMessage.mutate({ id, dto: { isDeleted: true } })}
-                                        onEdit={(m) => { setEditingMessage(m); setMessageText(m.content); }}
-                                    />   
+                                        onDelete={(id) =>
+                                            updateMessage.mutate({ id, dto: { isDeleted: true } })
+                                        }
+                                        onEdit={(m) => {
+                                            setEditingMessage(m);
+                                            setMessageText(m.content);
+                                        }}
+                                    />
                                 ))
                             )}
                             <div ref={scrollRef} />
@@ -146,8 +165,8 @@ export default function FloatingChatWindow({ chatId, onClose }: FloatingChatProp
                             handleSend={handleSend}
                             cancelEdit={cancelEdit}
                             editingMessage={editingMessage}
-                            disabled={sendMessage.isPending || updateMessage.isPending} 
-                            placeholder={editingMessage ? "Modifier..." : "Écrire..."}
+                            disabled={sendMessage.isPending || updateMessage.isPending}
+                            placeholder={editingMessage ? 'Modifier...' : 'Écrire...'}
                         />
                     </>
                 )}

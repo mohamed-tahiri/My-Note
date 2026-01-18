@@ -5,34 +5,51 @@ import { PageHeader } from '@/components/admin/ui/PageHeader';
 import { StatsCard } from '@/components/admin/ui/StatsCard';
 import { distributionData, networkData, serverColumns, servers } from '@/data/mockData';
 import { Box, Grid } from '@mui/material';
-import { Activity, Users, Server, Zap, } from 'lucide-react';
+import { Activity, Users, Server, Zap } from 'lucide-react';
 
 export default function OverviewPage() {
     return (
         <Box>
-            <PageHeader
-                title="Système Global"
-                subtitle="Statistiques consolidées en temps réel."
-            />
-            
+            <PageHeader title="Système Global" subtitle="Statistiques consolidées en temps réel." />
+
             <Grid container spacing={3} mb={3}>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatsCard title="Requêtes/sec" value="2,450" trend="+12%" icon={<Zap size={20}/>} />
+                    <StatsCard
+                        title="Requêtes/sec"
+                        value="2,450"
+                        trend="+12%"
+                        icon={<Zap size={20} />}
+                    />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatsCard title="Utilisateurs" value="12.8k" trend="+5%" icon={<Users size={20}/>} />
+                    <StatsCard
+                        title="Utilisateurs"
+                        value="12.8k"
+                        trend="+5%"
+                        icon={<Users size={20} />}
+                    />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatsCard title="Uptime" value="99.9%" trend="Stable" icon={<Server size={20}/>} />
+                    <StatsCard
+                        title="Uptime"
+                        value="99.9%"
+                        trend="Stable"
+                        icon={<Server size={20} />}
+                    />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatsCard title="Erreurs" value="0.04%" trend="-2%" icon={<Activity size={20}/>} />
+                    <StatsCard
+                        title="Erreurs"
+                        value="0.04%"
+                        trend="-2%"
+                        icon={<Activity size={20} />}
+                    />
                 </Grid>
             </Grid>
 
             <Grid container spacing={3} mb={3}>
                 <Grid size={{ xs: 12, lg: 8 }}>
-                    <BaseAreaChart 
+                    <BaseAreaChart
                         title="Utilisation Réseau (Gbps)"
                         data={networkData}
                         dataKey="load"
@@ -41,10 +58,7 @@ export default function OverviewPage() {
                 </Grid>
 
                 <Grid size={{ xs: 12, lg: 4 }}>
-                    <BaseDonutChart 
-                        title="Répartition Cluster" 
-                        data={distributionData} 
-                    />
+                    <BaseDonutChart title="Répartition Cluster" data={distributionData} />
                 </Grid>
             </Grid>
 

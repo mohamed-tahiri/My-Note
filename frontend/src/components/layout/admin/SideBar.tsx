@@ -9,58 +9,60 @@ export default function SideBar() {
     const isActive = (path: string) => location.pathname === path;
 
     return (
-        <Box sx={{ 
-            width: 280, 
-            minWidth: 280, 
-            borderRight: '1px solid #E2E8F0', 
-            p: 3, 
-            display: 'flex',
-            flexDirection: 'column',
-            bgcolor: 'white',
-            height: '100vh',
-            position: 'sticky',
-            top: 0
-        }}>
+        <Box
+            sx={{
+                width: 280,
+                minWidth: 280,
+                borderRight: '1px solid #E2E8F0',
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: 'white',
+                height: '100vh',
+                position: 'sticky',
+                top: 0,
+            }}
+        >
             <Typography variant="h6" sx={{ mb: 4, fontWeight: 800, color: 'primary.main' }}>
                 CORE_SYSTEM
             </Typography>
-            
+
             <Stack spacing={1} sx={{ flexGrow: 1 }}>
                 <Link to="/admin/overview" style={{ textDecoration: 'none' }}>
-                    <MenuButton 
-                        icon={<LayoutDashboard size={18}/>} 
-                        label="Overview" 
-                        active={isActive('/admin/overview')} 
+                    <MenuButton
+                        icon={<LayoutDashboard size={18} />}
+                        label="Overview"
+                        active={isActive('/admin/overview')}
                     />
                 </Link>
                 <Link to="/admin/infrastructure" style={{ textDecoration: 'none' }}>
-                    <MenuButton 
-                        icon={<Database size={18}/>} 
-                        label="Infrastructure" 
-                        active={isActive('/admin/infrastructure')} 
+                    <MenuButton
+                        icon={<Database size={18} />}
+                        label="Infrastructure"
+                        active={isActive('/admin/infrastructure')}
                     />
                 </Link>
                 <Link to="/admin/analytics" style={{ textDecoration: 'none' }}>
-                    <MenuButton 
-                        icon={<Activity size={18}/>} 
-                        label="Analytics" 
-                        active={isActive('/admin/analytics')} 
+                    <MenuButton
+                        icon={<Activity size={18} />}
+                        label="Analytics"
+                        active={isActive('/admin/analytics')}
                     />
                 </Link>
                 <Link to="/admin/security" style={{ textDecoration: 'none' }}>
-                    <MenuButton 
-                        icon={<Shield size={18}/>} 
-                        label="Security" 
-                        active={isActive('/admin/security')} 
+                    <MenuButton
+                        icon={<Shield size={18} />}
+                        label="Security"
+                        active={isActive('/admin/security')}
                     />
                 </Link>
             </Stack>
 
-            <Link to="/admin/settings" style={{ textDecoration: 'none' }}>    
-                <MenuButton 
-                    icon={<Settings size={18}/>} 
-                    label="Settings" 
-                    active={isActive('/admin/settings')} 
+            <Link to="/admin/settings" style={{ textDecoration: 'none' }}>
+                <MenuButton
+                    icon={<Settings size={18} />}
+                    label="Settings"
+                    active={isActive('/admin/settings')}
                 />
             </Link>
         </Box>

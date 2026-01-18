@@ -1,23 +1,23 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 export const useSessionStorage = () => {
-  const [value, setValue] = useState<string | null>(null);
+    const [value, setValue] = useState<string | null>(null);
 
-  const setItem = (key: string, value: string) => {
-    sessionStorage.setItem(key, value);
-    setValue(value);
-  };
+    const setItem = (key: string, value: string) => {
+        sessionStorage.setItem(key, value);
+        setValue(value);
+    };
 
-  const getItem = (key: string) => {
-    const value = sessionStorage.getItem(key);
-    setValue(value);
-    return value;
-  };
+    const getItem = (key: string) => {
+        const value = sessionStorage.getItem(key);
+        setValue(value);
+        return value;
+    };
 
-  const removeItem = (key: string) => {
-    sessionStorage.removeItem(key);
-    setValue(null);
-  };
+    const removeItem = (key: string) => {
+        sessionStorage.removeItem(key);
+        setValue(null);
+    };
 
-  return { value, setItem, getItem, removeItem };
+    return { value, setItem, getItem, removeItem };
 };

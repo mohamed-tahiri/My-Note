@@ -6,7 +6,8 @@ import { logger } from '@/utils/logger';
 
 let socket: Socket;
 
-export const useChatSocket = () => {const { user } = useAuth();
+export const useChatSocket = () => {
+    const { user } = useAuth();
 
     useEffect(() => {
         if (!socket && user) {
@@ -17,7 +18,7 @@ export const useChatSocket = () => {const { user } = useAuth();
             });
         }
     }, [user]);
-    
+
     const joinChat = useCallback((chatId: number) => {
         if (socket?.connected) {
             socket.emit('joinChat', chatId);

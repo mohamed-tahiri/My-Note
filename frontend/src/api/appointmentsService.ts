@@ -28,7 +28,7 @@ export const create = (data: CreateAppointmentDto) => api.post('/appointments', 
  * @returns Une promesse contenant le rendez-vous mis à jour
  */
 export const update = (id: number, data: UpdateAppointmentDto) =>
-  api.patch(`/appointments/${id}`, data);
+    api.patch(`/appointments/${id}`, data);
 
 /**
  * Supprime un rendez-vous par son ID.

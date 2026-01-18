@@ -10,7 +10,7 @@ export function useMessageMutations() {
     const sendMessage = useMutation({
         mutationFn: (payload: CreateMessageDto) => create(payload),
         onSuccess: (res) => {
-           queryClient.invalidateQueries({ queryKey: chatKeys.detail(res.data.chat.id) });
+            queryClient.invalidateQueries({ queryKey: chatKeys.detail(res.data.chat.id) });
         },
     });
 

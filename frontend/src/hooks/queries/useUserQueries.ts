@@ -5,9 +5,9 @@ import type { UpdateUserDto } from '@/types/user';
 
 // 1. Définition des clés de cache
 export const userKeys = {
-  all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,
-  detail: (id: number) => [...userKeys.all, 'detail', id] as const,
+    all: ['users'] as const,
+    lists: () => [...userKeys.all, 'list'] as const,
+    detail: (id: number) => [...userKeys.all, 'detail', id] as const,
 };
 
 /**
@@ -28,17 +28,15 @@ export function useUserMutations() {
     const queryClient = useQueryClient();
 
     const updateProfileMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdateUserDto }) =>
-        updateProfile(id, data),
+        mutationFn: ({ id, data }: { id: number; data: UpdateUserDto }) => updateProfile(id, data),
         onSuccess: (updatedUser) => {
             queryClient.setQueryData(userKeys.detail(updatedUser.id), updatedUser);
-            queryClient.invalidateQueries({ queryKey: userKeys.all });    
+            queryClient.invalidateQueries({ queryKey: userKeys.all });
             queryClient.invalidateQueries({ queryKey: ['auth-user'] });
-            
         },
         onError: (error: Error) => {
             logger.error(error.message);
-        }
+        },
     });
 
     return {

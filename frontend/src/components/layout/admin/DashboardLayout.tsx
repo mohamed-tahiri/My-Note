@@ -4,7 +4,6 @@ import SideBar from './SideBar.tsx';
 import { Header } from './Header.tsx';
 import { Outlet } from 'react-router-dom';
 
-
 const DashboardLayout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -13,8 +12,15 @@ const DashboardLayout = () => {
     };
 
     return (
-        <Box sx={{ display: 'flex', bgcolor: 'background.default', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-            
+        <Box
+            sx={{
+                display: 'flex',
+                bgcolor: 'background.default',
+                height: '100vh',
+                width: '100vw',
+                overflow: 'hidden',
+            }}
+        >
             <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                 <SideBar />
             </Box>
@@ -28,11 +34,19 @@ const DashboardLayout = () => {
             >
                 <SideBar />
             </Drawer>
-            
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh' }}>
+
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minWidth: 0,
+                    height: '100vh',
+                }}
+            >
                 {/* On passe la fonction de toggle au Header */}
                 <Header onMenuClick={toggleMobileMenu} />
-                
+
                 <Box sx={{ p: { xs: 2, md: 6 }, flexGrow: 1, overflowY: 'auto' }}>
                     <Outlet />
                 </Box>

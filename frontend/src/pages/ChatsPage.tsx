@@ -8,62 +8,59 @@ import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
 
 export default function ChatsPage() {
-  const { id: activeChatId } = useParams();
-  const { user } = useAuth();
-  
-  // 1. DATA FETCHING avec TanStack Query
-  // Remplace loadChats, chats, et loading
-  const { 
-    data: chats, 
-    isLoading, 
-    error, 
-    refetch 
-  } = useChats(Number(user?.id));
+    const { id: activeChatId } = useParams();
+    const { user } = useAuth();
 
-  // 2. UI STATE (Uniquement pour la modale)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    // 1. DATA FETCHING avec TanStack Query
+    // Remplace loadChats, chats, et loading
+    const { data: chats, isLoading, error, refetch } = useChats(Number(user?.id));
 
-  return (
-    <Box sx={{ 
-      display: 'flex', 
-      height: 'calc(100vh - 64px)', 
-      bgcolor: 'background.default',
-      overflow: 'hidden' 
-    }}>    
+    // 2. UI STATE (Uniquement pour la modale)
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-      <AsyncWrapper
-        loading={isLoading} 
-        error={error} 
-        isEmpty={!chats || chats.length === 0}
-        emptyMessage="Vous n'avez pas encore de notes. Commencez par en créer une !"
-        onRetry={() => refetch()}
-      >
+    return (
+        <Box
+            sx={{
+                display: 'flex',
+                height: 'calc(100vh - 64px)',
+                bgcolor: 'background.default',
+                overflow: 'hidden',
+            }}
+        >
+            <AsyncWrapper
+                loading={isLoading}
+                error={error}
+                isEmpty={!chats || chats.length === 0}
+                emptyMessage="Vous n'avez pas encore de notes. Commencez par en créer une !"
+                onRetry={() => refetch()}
+            >
+                <ChatSidebar
+                    chats={chats || []}
+                    loading={isLoading}
+                    activeChatId={activeChatId}
+                    currentUserId={Number(user?.id)}
+                    onOpenCreateModal={() => setIsCreateModalOpen(true)}
+                />
 
-        <ChatSidebar 
-          chats={chats || []} 
-          loading={isLoading} 
-          activeChatId={activeChatId}
-          currentUserId={Number(user?.id)}
-          onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        />
+                <Box
+                    sx={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: '#f8fafc',
+                        position: 'relative',
+                    }}
+                >
+                    <Outlet />
+                </Box>
+            </AsyncWrapper>
 
-        <Box sx={{ 
-          flex: 1, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          bgcolor: '#f8fafc',
-          position: 'relative' 
-        }}>
-          <Outlet /> 
+            <CreateChatModal
+                open={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                // Note: Plus besoin de onChatCreated={loadChats} !
+                // La mutation de création dans CreateChatModal invalidera la query ['chats']
+            />
         </Box>
-      </AsyncWrapper>
-
-        <CreateChatModal
-          open={isCreateModalOpen} 
-          onClose={() => setIsCreateModalOpen(false)} 
-          // Note: Plus besoin de onChatCreated={loadChats} !
-          // La mutation de création dans CreateChatModal invalidera la query ['chats']
-        />
-    </Box>
-  );
+    );
 }

@@ -1,23 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-    getAll, 
-    getTasksByNote, 
-    getTasksByUser, 
-    getById, 
-    create, 
-    update, 
-    deleteTask 
+import {
+    getAll,
+    getTasksByNote,
+    getTasksByUser,
+    getById,
+    create,
+    update,
+    deleteTask,
 } from '@/api/tasksService';
 import type { CreateTaskDto, UpdateTaskDto } from '@/types/task';
 import { logger } from '@/utils/logger';
 
 // 1. Définition des clés de cache (Query Keys)
 export const taskKeys = {
-  all: ['tasks'] as const,
-  lists: () => [...taskKeys.all, 'list'] as const,
-  byNote: (noteId: number) => [...taskKeys.lists(), 'note', noteId] as const,
-  byUser: (userId: number) => [...taskKeys.lists(), 'user', userId] as const,
-  detail: (id: number) => [...taskKeys.all, 'detail', id] as const,
+    all: ['tasks'] as const,
+    lists: () => [...taskKeys.all, 'list'] as const,
+    byNote: (noteId: number) => [...taskKeys.lists(), 'note', noteId] as const,
+    byUser: (userId: number) => [...taskKeys.lists(), 'user', userId] as const,
+    detail: (id: number) => [...taskKeys.all, 'detail', id] as const,
 };
 
 /**
@@ -25,45 +25,45 @@ export const taskKeys = {
  */
 
 export const useTasks = () => {
-  return useQuery({
-    queryKey: taskKeys.lists(),
-    queryFn: () => getAll().then(res => res.data),
-  });
+    return useQuery({
+        queryKey: taskKeys.lists(),
+        queryFn: () => getAll().then((res) => res.data),
+    });
 };
 
 export const useTasksByNote = (noteId: number) => {
-  return useQuery({
-    queryKey: taskKeys.byNote(noteId),
-    queryFn: () => getTasksByNote(noteId).then(res => res.data),
-    enabled: !!noteId,
-  });
+    return useQuery({
+        queryKey: taskKeys.byNote(noteId),
+        queryFn: () => getTasksByNote(noteId).then((res) => res.data),
+        enabled: !!noteId,
+    });
 };
 
 export const useTasksByUser = (userId: number) => {
-  return useQuery({
-    queryKey: taskKeys.byUser(userId),
-    queryFn: () => getTasksByUser(userId).then(res => res.data),
-    enabled: !!userId,
-  });
+    return useQuery({
+        queryKey: taskKeys.byUser(userId),
+        queryFn: () => getTasksByUser(userId).then((res) => res.data),
+        enabled: !!userId,
+    });
 };
 
 export const useTaskDetail = (taskId: number) => {
-  return useQuery({
-    queryKey: taskKeys.detail(taskId),
-    queryFn: () => getById(taskId).then(res => res.data),
-    enabled: !!taskId,
-  });
-}
+    return useQuery({
+        queryKey: taskKeys.detail(taskId),
+        queryFn: () => getById(taskId).then((res) => res.data),
+        enabled: !!taskId,
+    });
+};
 
 /**
  * HOOKS D'ÉCRITURE (MUTATIONS)
  */
 
 export const useTaskMutations = () => {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
     const createTaskMutation = useMutation({
-        mutationFn: (data: CreateTaskDto) => create(data).then(res => res.data),
+        mutationFn: (data: CreateTaskDto) => create(data).then((res) => res.data),
         onSuccess: (newTask) => {
             logger.info(newTask);
             queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
@@ -71,8 +71,8 @@ export const useTaskMutations = () => {
     });
 
     const updateTaskMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: UpdateTaskDto }) => 
-        update(id, data).then(res => res.data),
+        mutationFn: ({ id, data }: { id: number; data: UpdateTaskDto }) =>
+            update(id, data).then((res) => res.data),
         onSuccess: (updatedTask) => {
             logger.info(updatedTask);
             queryClient.invalidateQueries({ queryKey: taskKeys.all });

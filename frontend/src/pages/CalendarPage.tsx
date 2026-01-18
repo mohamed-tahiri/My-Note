@@ -1,12 +1,4 @@
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Breadcrumbs, 
-  Link, 
-  Stack, 
-  Button 
-} from '@mui/material';
+import { Box, Typography, Paper, Breadcrumbs, Link, Stack, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ListIcon from '@mui/icons-material/List';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -20,10 +12,20 @@ export default function CalendarPage() {
 
     return (
         <Box>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+            <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                sx={{ mb: 4 }}
+            >
                 <Box>
                     <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ mb: 1 }}>
-                        <Link underline="hover" color="inherit" component={RouterLink} to="/appointments">
+                        <Link
+                            underline="hover"
+                            color="inherit"
+                            component={RouterLink}
+                            to="/appointments"
+                        >
                             Rendez-vous
                         </Link>
                         <Typography color="text.primary">Calendrier</Typography>
@@ -33,8 +35,8 @@ export default function CalendarPage() {
                     </Typography>
                 </Box>
 
-                <Button 
-                    variant="outlined" 
+                <Button
+                    variant="outlined"
                     component={RouterLink}
                     to="/appointments"
                     startIcon={<ListIcon />}
@@ -45,18 +47,14 @@ export default function CalendarPage() {
             </Stack>
 
             {/* Utilisation de l'AsyncWrapper pour le Calendrier */}
-            <AsyncWrapper 
-                loading={isLoading} 
-                error={error} 
-                onRetry={() => refetch()}
-            >
-                <Paper 
-                    sx={{ 
-                        p: 3, 
-                        borderRadius: '20px', 
-                        border: '1px solid', 
+            <AsyncWrapper loading={isLoading} error={error} onRetry={() => refetch()}>
+                <Paper
+                    sx={{
+                        p: 3,
+                        borderRadius: '20px',
+                        border: '1px solid',
                         borderColor: 'divider',
-                        minHeight: '600px' // Évite le saut de mise en page
+                        minHeight: '600px', // Évite le saut de mise en page
                     }}
                 >
                     <CalendarView appointments={appointments || []} />

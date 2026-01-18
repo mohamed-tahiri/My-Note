@@ -6,14 +6,19 @@ import type { AppointmentFormModalProps } from '@/types/props';
 import { BaseModal } from '../ui/BaseModal';
 
 const DEFAULT_STATE = {
-  title: '',
-  startAt: '',
-  endAt: '',
-  location: '',
-  type: 'Personal' as AppointmentType,
+    title: '',
+    startAt: '',
+    endAt: '',
+    location: '',
+    type: 'Personal' as AppointmentType,
 };
 
-export function AppointmentFormModal({ isOpen, onSubmit, editingAppointment, onClose }: AppointmentFormModalProps) {
+export function AppointmentFormModal({
+    isOpen,
+    onSubmit,
+    editingAppointment,
+    onClose,
+}: AppointmentFormModalProps) {
     const { user } = useAuth();
     const [formData, setFormData] = useState(DEFAULT_STATE);
 
@@ -21,8 +26,12 @@ export function AppointmentFormModal({ isOpen, onSubmit, editingAppointment, onC
         if (apt) {
             setFormData({
                 title: apt.title || '',
-                startAt: apt.startAt ? new Date(apt.startAt).toLocaleString('sv').slice(0, 16).replace(' ', 'T') : '',
-                endAt: apt.endAt ? new Date(apt.endAt).toLocaleString('sv').slice(0, 16).replace(' ', 'T') : '',
+                startAt: apt.startAt
+                    ? new Date(apt.startAt).toLocaleString('sv').slice(0, 16).replace(' ', 'T')
+                    : '',
+                endAt: apt.endAt
+                    ? new Date(apt.endAt).toLocaleString('sv').slice(0, 16).replace(' ', 'T')
+                    : '',
                 location: apt.location || '',
                 type: (apt.type as AppointmentType) || 'Personal',
             });
@@ -57,10 +66,10 @@ export function AppointmentFormModal({ isOpen, onSubmit, editingAppointment, onC
 
     return (
         <BaseModal
-          isOpen={isOpen}
-          onClose={onClose}
-          onSubmit={handleSubmit}
-          title={editingAppointment ? 'Modifier la note' : 'Nouvelle note'}
+            isOpen={isOpen}
+            onClose={onClose}
+            onSubmit={handleSubmit}
+            title={editingAppointment ? 'Modifier la note' : 'Nouvelle note'}
         >
             <Stack spacing={3}>
                 <TextField
@@ -96,7 +105,9 @@ export function AppointmentFormModal({ isOpen, onSubmit, editingAppointment, onC
                     label="Catégorie"
                     fullWidth
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as AppointmentType })}
+                    onChange={(e) =>
+                        setFormData({ ...formData, type: e.target.value as AppointmentType })
+                    }
                 >
                     <MenuItem value="Professional">Professionnel</MenuItem>
                     <MenuItem value="Personal">Personnel</MenuItem>

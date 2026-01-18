@@ -22,55 +22,67 @@ import SettingsPage from '@/pages/admin/SettingsPage';
 import { ChatPlaceholder } from '@/components/chat/ChatPlaceholder';
 
 export default function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
+    return (
+        <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-      {/* Main App Shell */}
-      <Route element={<ProtectedRoute allowedRoles={['USER']}><Layout /></ProtectedRoute>}>
-        <Route path="/" element={<Navigate to="/notes" replace />} />
+            {/* Main App Shell */}
+            <Route
+                element={
+                    <ProtectedRoute allowedRoles={['USER']}>
+                        <Layout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="/" element={<Navigate to="/notes" replace />} />
 
-        {/* Section Notes */}
-        <Route path="notes">
-          <Route index element={<NotesPage />} />
-          <Route path=":id" element={<NoteDetailPage />} />
-        </Route>
-        
-        {/* Section Tasks */}
-        <Route path="tasks">
-          <Route index element={<TasksPage />} />
-          <Route path=":id" element={<TaskDetailPage />} />
-        </Route>
+                {/* Section Notes */}
+                <Route path="notes">
+                    <Route index element={<NotesPage />} />
+                    <Route path=":id" element={<NoteDetailPage />} />
+                </Route>
 
-        {/* Section Appointments */}
-        <Route path="appointments">
-          <Route index element={<AppointmentsPage />} />
-          <Route path="calendar" element={<CalendarPage />} />
-        </Route>
+                {/* Section Tasks */}
+                <Route path="tasks">
+                    <Route index element={<TasksPage />} />
+                    <Route path=":id" element={<TaskDetailPage />} />
+                </Route>
 
-        {/* Section Chats */}
-        <Route path="chats" element={<ChatsPage />}>
-          <Route index element={<ChatPlaceholder />} />
-          <Route path=":id" element={<ChatWindow />} />
-        </Route>
+                {/* Section Appointments */}
+                <Route path="appointments">
+                    <Route index element={<AppointmentsPage />} />
+                    <Route path="calendar" element={<CalendarPage />} />
+                </Route>
 
-        {/* Section Profile */}
-        <Route path="profile" element={<ProfilePage />} />
-      </Route>
+                {/* Section Chats */}
+                <Route path="chats" element={<ChatsPage />}>
+                    <Route index element={<ChatPlaceholder />} />
+                    <Route path=":id" element={<ChatWindow />} />
+                </Route>
 
+                {/* Section Profile */}
+                <Route path="profile" element={<ProfilePage />} />
+            </Route>
 
-      {/* Admin */}
-      <Route path="admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          
-          <Route path="overview" element={<OverviewPage />} />
-          <Route path="infrastructure" element={<MonitoringPage />} />
-          <Route path="analytics" element={<AnalyticsPage />} />
-          <Route path="security" element={<SecurityPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-      </Route>
+            {/* Admin */}
+            <Route
+                path="admin"
+                element={
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                        <DashboardLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route index element={<Navigate to="overview" replace />} />
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
+                <Route path="overview" element={<OverviewPage />} />
+                <Route path="infrastructure" element={<MonitoringPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="security" element={<SecurityPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+            </Route>
+
+            <Route path="*" element={<NotFound />} />
+        </Routes>
+    );
 }

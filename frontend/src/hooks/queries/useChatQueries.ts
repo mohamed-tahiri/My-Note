@@ -13,7 +13,7 @@ export const chatKeys = {
 export function useChats(currentUserId: number) {
     return useQuery({
         queryKey: chatKeys.user(currentUserId), // Correction ici
-        queryFn: () => getAll().then(res => res.data),
+        queryFn: () => getAll().then((res) => res.data),
         enabled: !!currentUserId,
     });
 }
@@ -35,7 +35,7 @@ export function useChatMutations() {
 export function useChatDetail(chatId: number | undefined) {
     return useQuery({
         queryKey: chatKeys.detail(chatId!),
-        queryFn: () => getById(chatId!).then(res => res.data),
+        queryFn: () => getById(chatId!).then((res) => res.data),
         enabled: !!chatId,
         staleTime: 1000 * 60 * 2,
     });

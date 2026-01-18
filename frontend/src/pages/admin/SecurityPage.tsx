@@ -16,8 +16,12 @@ export default function SecurityPage() {
                 iconBgColor="error.main"
                 rightContent={
                     <Paper sx={{ p: 2, borderLeft: '4px solid #10B981' }}>
-                    <Typography variant="caption" fontWeight={700} color="text.secondary">Niveau de Menace</Typography>
-                    <Typography variant="h6" fontWeight={800} color="success.main">BAS</Typography>
+                        <Typography variant="caption" fontWeight={700} color="text.secondary">
+                            Niveau de Menace
+                        </Typography>
+                        <Typography variant="h6" fontWeight={800} color="success.main">
+                            BAS
+                        </Typography>
                     </Paper>
                 }
             />
@@ -25,9 +29,9 @@ export default function SecurityPage() {
             <Grid container spacing={3} mb={4}>
                 {/* 1. Radar des Menaces */}
                 <Grid size={{ xs: 12, md: 5 }}>
-                    <BaseRadarChart 
-                        title="Vecteurs d'Attaque" 
-                        data={threatData} 
+                    <BaseRadarChart
+                        title="Vecteurs d'Attaque"
+                        data={threatData}
                         color="#EF4444"
                         height={300}
                     />
@@ -45,9 +49,9 @@ export default function SecurityPage() {
                 </Grid>
             </Grid>
             <GenericTable
-                title="Journal d'Audit de Sécurité" 
-                data={securityLogs} 
-                columns={logColumns} 
+                title="Journal d'Audit de Sécurité"
+                data={securityLogs}
+                columns={logColumns}
             />
         </Box>
     );
