@@ -1,16 +1,10 @@
 import { Stack } from '@mui/material';
 import { AppointmentItem } from './AppointmentItem';
-import type { Appointment } from '@/types/appointment';
 import EventBusyIcon from '@mui/icons-material/EventBusy';
 import { EmptyState } from '../ui/EmptyState';
+import type { AppointmentsListProps } from '@/types/props';
 
-interface Props {
-  appointments: Appointment[];
-  onEdit: (appointment: Appointment) => void;
-  onDelete: (id: number) => void;
-}
-
-export function AppointmentsList({ appointments, onEdit, onDelete }: Props) {
+export function AppointmentsList({ appointments, onEdit, onDelete }: AppointmentsListProps) {
     return (
         <Stack spacing={3}>
             {appointments.length === 0 ? (

@@ -1,78 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { Box, Typography, Stack, Button, Fab, CircularProgress, Fade } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import { Box, Typography, Stack, Button } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import type { Appointment, CreateAppointmentDto } from '@/types/appointment';
-import { logger } from '@/utils/logger';
+
+import { useAppointments, useAppointmentMutations } from '@/hooks/queries/useAppointmentQueries';
 import { AppointmentFormModal } from '@/components/appointments/AppointmentFormModal';
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-// Import complet des services
-import { getAll, create, update, deleteAppointment } from '@/api/appointmentsService';
+import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
+import type { Appointment, CreateAppointmentDto } from '@/types/appointment';
+import FadButton from '@/components/ui/FadButton';
 
 export default function AppointmentsPage() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: appointments, isLoading, error, refetch } = useAppointments();
+
+  const { createAppointment, updateAppointment, deleteAppointment } = useAppointmentMutations();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingApt, setEditingApt] = useState<Appointment | undefined>();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  // Charger les rendez-vous depuis l'API
-  const loadAppointments = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const res = await getAll();
-      setAppointments(res.data);
-    } catch (error) {
-      logger.error('Erreur lors du chargement des rendez-vous:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadAppointments();
-  }, [loadAppointments]);
-
-  const handleCreateOrUpdate = async (data: CreateAppointmentDto) => {
-    try {
-      if (editingApt) {
-        await update(editingApt.id, data);
-      } else {
-        await create(data);
-      }
-      setIsModalOpen(false);
-      setEditingApt(undefined);
-      loadAppointments();
-    } catch (error) {
-      logger.error('Erreur lors de la sauvegarde:', error);
+  const handleCreateOrUpdate = (data: CreateAppointmentDto) => {
+    if (editingApt) {
+      updateAppointment.mutate({ id: editingApt.id, data }, {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          setEditingApt(undefined);
+        }
+      });
+    } else {
+      createAppointment.mutate(data, {
+        onSuccess: () => setIsModalOpen(false)
+      });
     }
   };
 
-  const handleEdit = (appointment: Appointment) => {
-    setEditingApt(appointment);
-    setIsModalOpen(true);
-  };
-
-  const openDeleteConfirm = (id: number) => {
-    setSelectedId(id);
-    setConfirmOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (selectedId) {
-      try {
-        await deleteAppointment(selectedId);
-        setConfirmOpen(false);
-        setSelectedId(null);
-        loadAppointments();
-      } catch (error) {
-        logger.error('Erreur lors de la suppression:', error);
-      }
+      deleteAppointment.mutate(selectedId, {
+        onSuccess: () => setConfirmOpen(false)
+      });
     }
   };
+
+  const onHandleFad = () => {
+    setEditingApt(undefined); 
+    setIsModalOpen(true); 
+  }
 
   return (
     <Box sx={{ pb: 8 }}>
@@ -96,21 +71,19 @@ export default function AppointmentsPage() {
         </Button>
       </Stack>
 
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-          <CircularProgress color="primary" />
-        </Box>
-      ) : (
-        <Fade in={!isLoading}>
-          <Box>
-            <AppointmentsList
-              appointments={appointments}
-              onEdit={handleEdit}
-              onDelete={openDeleteConfirm}
-            />
-          </Box>
-        </Fade>
-      )}
+      <AsyncWrapper
+        loading={isLoading}
+        error={error}
+        isEmpty={!appointments || appointments.length === 0}
+        emptyMessage="Aucun rendez-vous prévu. Cliquez sur le bouton + pour commencer."
+        onRetry={() => refetch()}
+      >
+        <AppointmentsList
+          appointments={appointments || []}
+          onEdit={(apt) => { setEditingApt(apt); setIsModalOpen(true); }}
+          onDelete={(id) => { setSelectedId(id); setConfirmOpen(true); }}
+        />
+      </AsyncWrapper>
 
       <AppointmentFormModal
         isOpen={isModalOpen}
@@ -127,18 +100,7 @@ export default function AppointmentsPage() {
         onClose={() => setConfirmOpen(false)}
       />
 
-      <Fab 
-        color="primary" 
-        onClick={() => setIsModalOpen(true)}
-        sx={{ 
-          position: 'fixed', 
-          bottom: { xs: 80, md: 40 }, 
-          right: { xs: 20, md: 40 },
-          boxShadow: '0px 4px 20px rgba(37, 99, 235, 0.4)'
-        }}
-      >
-        <AddIcon />
-      </Fab>
+      <FadButton onHandleFad={onHandleFad}  />
     </Box>
   );
 }

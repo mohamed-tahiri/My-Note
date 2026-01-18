@@ -5,15 +5,10 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import type { Appointment } from '@/types/appointment';
+import type { AppointmentItemProps } from '@/types/props';
 
-interface Props {
-  appointment: Appointment;
-  onEdit: (appointment: Appointment) => void;
-  onDelete: (id: number) => void;
-}
 
-export function AppointmentItem({ appointment, onEdit, onDelete }: Props) {
+export function AppointmentItem({ appointment, onEdit, onDelete }: AppointmentItemProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
