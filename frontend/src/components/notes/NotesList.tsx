@@ -1,14 +1,8 @@
 import { Box, Typography, Grid, Stack, Chip } from '@mui/material';
-import type { Note } from '../../types/note';
 import { NoteItem } from './NoteItem';
+import type { NotesListProps } from '@/types/props';
 
-interface Props {
-  notes: Note[];
-  onEdit: (note: Note) => void;
-  onDelete: (id: number) => void;
-}
-
-export function NotesList({ notes, onEdit, onDelete }: Props) {
+export function NotesList({ notes, onEdit, onDelete }: NotesListProps) {
   if (notes.length === 0) {
     return (
       <Box sx={{ textAlign: 'center', py: 10, bgcolor: 'background.paper', borderRadius: 4, border: '1px dashed', borderColor: 'divider' }}>

@@ -10,15 +10,9 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import type { Note } from '../../types/note';
+import type { NoteItemProps } from '@/types/props';
 
-interface Props {
-  note: Note;
-  onEdit: () => void;
-  onDelete: () => void;
-}
-
-export function NoteItem({ note, onEdit, onDelete }: Props) {
+export function NoteItem({ note, onEdit, onDelete }: NoteItemProps) {
   return (
     <Card 
       sx={{ 
@@ -33,7 +27,7 @@ export function NoteItem({ note, onEdit, onDelete }: Props) {
         },
         position: 'relative',
         borderLeft: '4px solid',
-        borderColor: 'primary.main' // Rappel discret de votre couleur Slate
+        borderColor: 'primary.main'
       }}
     >
       <CardContent 

@@ -4,7 +4,6 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import type { Note } from '@/types/note';
 import type { Task } from '@/types/task';
 import { TaskStatus, type TaskStatusType } from '@/enums/task';
 import { TaskItem } from '../tasks/TaskItem';
@@ -13,15 +12,9 @@ import { logger } from '@/utils/logger';
 import { deleteTask, update } from '@/api/tasksService';
 import { EmptyState } from '../ui/EmptyState';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import type { NoteTasksListProps } from '@/types/props';
 
-interface Props {
-  note: Note;
-  tasks: Task[];
-  tasksLoading: boolean;
-  reloadTasks: () => void;
-}
-
-export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: Props) {
+export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: NoteTasksListProps) {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -105,7 +98,6 @@ export function NoteTasksList({ note, tasks, tasksLoading, reloadTasks }: Props)
         task={editingTask}
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
-        onSaved={reloadTasks}
       />
 
       {tasks.length === 0 ? (

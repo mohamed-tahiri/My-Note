@@ -1,65 +1,49 @@
-import React, { useEffect, useEffectEvent, useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  IconButton,
-  Typography,
-  Box,
-  Stack,
-  MenuItem,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import React, { useEffect, useState, useEffectEvent } from 'react';
+import { TextField, Stack, MenuItem } from '@mui/material';
 import { useAuth } from '@/hooks/useAuth';
-import type { CreateNoteDto, Note, UpdateNoteDto } from '@/types/note';
+import type { CreateNoteDto, UpdateNoteDto } from '@/types/note';
 import { NotePriority } from '@/enums/note';
+import type { NoteFormModalProps } from '@/types/props';
+import { BaseModal } from '../ui/BaseModal';
 
-interface Props {
-  isOpen: boolean;
-  onSubmit: (data: CreateNoteDto) => void;
-  editingNote?: Note;
-  onClose: () => void;
-}
+const DEFAULT_STATE = {
+  title: '',
+  content: '',
+  priority: NotePriority.LOW,
+};
 
 export function NoteFormModal({
-  isOpen,
-  onSubmit,
-  editingNote,
-  onClose,
-}: Props) {
+  isOpen, onSubmit, editingNote, onClose,
+}: NoteFormModalProps) {
   const { user } = useAuth();
-
-  // Initialisation avec le champ priority par défaut à 'low'
   const [formData, setFormData] = useState<{
     title: string;
     content: string;
     priority: NotePriority;
-  }>({
-    title: '',
-    content: '',
-    priority: NotePriority.LOW,
-  });
+  }>(DEFAULT_STATE);
 
-  const updateDate = useEffectEvent((note: UpdateNoteDto) => {
-    setFormData({
-      title: note.title ?? '', 
-      content: note.content ?? '',
-      priority: note.priority ?? NotePriority.LOW,
-    });
+  /**
+   * Action stabilisée pour réinitialiser le formulaire.
+   * L'usage de useEffectEvent garantit que cette fonction lit les dernières
+   * valeurs sans forcer le useEffect à se redéclencher inutilement.
+   */
+  const handleResetForm = useEffectEvent((note?: UpdateNoteDto) => {
+    if (note) {
+      setFormData({
+        title: note.title ?? '',
+        content: note.content ?? '',
+        priority: note.priority ?? NotePriority.LOW,
+      });
+    } else {
+      setFormData(DEFAULT_STATE);
+    }
   });
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    if (editingNote) {
-      updateDate(editingNote);
-    } else {
-      updateDate({ title: '', content: '', priority: NotePriority.LOW });
+    if (isOpen) {
+      handleResetForm(editingNote);
     }
-  }, [editingNote, isOpen]);
+  }, [isOpen, editingNote]); // handleResetForm n'est pas une dépendance réactive
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -83,107 +67,56 @@ export function NoteFormModal({
   };
 
   return (
-    <Dialog 
-      open={isOpen} 
+    <BaseModal
+      isOpen={isOpen}
       onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      PaperProps={{
-        sx: { 
-            borderRadius: '16px', 
-            p: 1,
-            backgroundImage: 'none'
-        }
-      }}
+      onSubmit={handleSubmit}
+      title={editingNote ? 'Modifier la note' : 'Nouvelle note'}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" fontWeight={800} color="primary.main">
-          {editingNote ? 'Modifier la note' : 'Nouvelle note'}
-        </Typography>
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          sx={{ color: 'text.secondary', '&:hover': { bgcolor: 'background.default' } }}
+      <Stack spacing={3}>
+        <TextField
+          name="title"
+          label="Titre de la note"
+          placeholder="Ex: Liste de courses, Idées de voyage..."
+          fullWidth
+          value={formData.title}
+          onChange={handleChange}
+          required
+          autoFocus
+          variant="outlined"
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+        />
+
+        <TextField
+          select
+          name="priority"
+          label="Priorité"
+          value={formData.priority}
+          onChange={handleChange}
+          fullWidth
+          variant="outlined"
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
         >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+          <MenuItem value={NotePriority.HIGH}>Haute (Important)</MenuItem>
+          <MenuItem value={NotePriority.MEDIUM}>Moyenne</MenuItem>
+          <MenuItem value={NotePriority.LOW}>Basse (Basique)</MenuItem>
+        </TextField>
 
-      <Box component="form" onSubmit={handleSubmit} noValidate>
-        <DialogContent dividers sx={{ borderBottom: 'none', py: 3 }}>
-          <Stack spacing={3}>
-            {/* Champ Titre */}
-            <TextField
-              name="title"
-              label="Titre de la note"
-              placeholder="Ex: Liste de courses, Idées de voyage..."
-              fullWidth
-              value={formData.title}
-              onChange={handleChange}
-              required
-              autoFocus
-              variant="outlined"
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            />
-
-            {/* Champ Priorité (Select) */}
-            <TextField
-              select
-              name="priority"
-              label="Priorité"
-              value={formData.priority}
-              onChange={handleChange}
-              fullWidth
-              variant="outlined"
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            >
-              <MenuItem value={NotePriority.HIGH}>Haute (Important)</MenuItem>
-              <MenuItem value={NotePriority.MEDIUM}>Moyenne</MenuItem>
-              <MenuItem value={NotePriority.LOW}>Basse (Basique)</MenuItem>
-            </TextField>
-
-            {/* Champ Contenu */}
-            <TextField
-              name="content"
-              label="Contenu"
-              placeholder="Détaillez votre pensée ici..."
-              fullWidth
-              multiline
-              rows={6}
-              value={formData.content}
-              onChange={handleChange}
-              required
-              variant="outlined"
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            />
-          </Stack>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
-          <Button 
-            onClick={onClose} 
-            color="inherit" 
-            sx={{ fontWeight: 600, textTransform: 'none', color: 'text.secondary', px: 3 }}
-          >
-            Annuler
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disableElevation
-            sx={{ 
-              fontWeight: 700, 
-              textTransform: 'none', 
-              px: 4,
-              borderRadius: '10px',
-              bgcolor: 'primary.main',
-              '&:hover': { bgcolor: 'primary.light' }
-            }}
-          >
-            {editingNote ? 'Mettre à jour' : 'Enregistrer'}
-          </Button>
-        </DialogActions>
-      </Box>
-    </Dialog>
+        <TextField
+          name="content"
+          label="Contenu"
+          placeholder="Détaillez votre pensée ici..."
+          fullWidth
+          multiline
+          rows={6}
+          value={formData.content}
+          onChange={handleChange}
+          required
+          variant="outlined"
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+        />
+      </Stack>
+    </BaseModal>
+        
   );
 }
