@@ -6,6 +6,7 @@ export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isFetching: boolean;
   login: (credentials: LoginDto) => Promise<User>;
   logout: () => Promise<void>;
   updateUserInfo: (newData: User) => void;

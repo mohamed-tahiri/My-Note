@@ -3,25 +3,11 @@ import {
   DialogActions, Button, Typography 
 } from '@mui/material';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import type { ConfirmDialogProps } from '@/types/props';
 
-interface Props {
-  isOpen: boolean;
-  title: string;
-  description: string;
-  onConfirm: () => void;
-  onClose: () => void;
-  isLoading?: boolean;
-}
-
-export function ConfirmDialog({ isOpen, title, description, onConfirm, onClose, isLoading }: Props) {
+export function ConfirmDialog({ isOpen, title, description, onConfirm, onClose, isLoading }: ConfirmDialogProps) {
   return (
-    <Dialog 
-      open={isOpen} 
-      onClose={onClose}
-      PaperProps={{
-        sx: { borderRadius: '16px', p: 1, maxWidth: '400px' }
-      }}
-    >
+    <Dialog open={isOpen} onClose={onClose} PaperProps={{ sx: { borderRadius: '16px', p: 1, maxWidth: '400px' }}}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <WarningAmberRoundedIcon color="error" />
         <Typography variant="h6" fontWeight={800}>{title}</Typography>

@@ -1,3 +1,4 @@
+import type { BaseComposedChartProps } from '@/types/props';
 import { Box, Paper, Typography } from '@mui/material';
 import { 
     Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -8,24 +9,8 @@ interface ChartDataItem {
     [key: string]: string | number;
 }
 
-interface BaseComposedChartProps<T extends ChartDataItem> {
-    title: string;
-    data: T[];
-    xAxisKey: keyof T;
-    areaKey: keyof T;
-    barKey: keyof T;
-    lineKey: keyof T;
-    height?: number;
-}
-
 export const BaseComposedChart = <T extends ChartDataItem>({ 
-    title, 
-    data, 
-    xAxisKey, 
-    areaKey, 
-    barKey, 
-    lineKey, 
-    height = 400 
+    title, data, xAxisKey, areaKey, barKey, lineKey, height = 400 
 }: BaseComposedChartProps<T>) => {
     return (
         <Paper sx={{ p: 4, borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0px 2px 4px rgba(0,0,0,0.02)' }}>

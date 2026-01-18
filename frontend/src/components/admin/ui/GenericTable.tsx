@@ -1,27 +1,12 @@
+import type { GenericTableProps } from '@/types/admin';
 import { 
   Table, TableBody, TableCell, TableContainer, 
   TableHead, TableRow, Paper, Box, Typography 
 } from '@mui/material';
 import type { ReactNode } from 'react';
 
-// Définition d'une colonne
-export interface Column<T> {
-  header: string;
-  key: keyof T | string;
-  render?: (item: T) => ReactNode; // Fonction optionnelle pour un rendu personnalisé (Chip, Icon, etc.)
-  align?: 'left' | 'center' | 'right';
-}
-
-interface GenericTableProps<T> {
-  title: string;
-  data: T[];
-  columns: Column<T>[];
-}
-
 export const GenericTable = <T extends { id: string | number }>({ 
-  title, 
-  data, 
-  columns 
+  title, data, columns 
 }: GenericTableProps<T>) => {
   return (
     <Box sx={{ mt: 4 }}>

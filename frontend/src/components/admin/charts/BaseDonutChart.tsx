@@ -2,7 +2,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Typography, Box, Paper, Stack } from '@mui/material';
 import type { BaseDonutChartProps } from '@/types/admin';
 
-
 export const BaseDonutChart = ({ 
     title, 
     data, 

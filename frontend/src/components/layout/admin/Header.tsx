@@ -1,11 +1,8 @@
+import type { HeaderAdminProps } from '@/types/props';
 import { Box, Stack, InputBase, Paper, IconButton } from '@mui/material';
 import { Search, Bell, Menu as MenuIcon } from 'lucide-react';
 
-interface HeaderProps {
-    onMenuClick: () => void;
-}
-
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick }: HeaderAdminProps) {
     return (   
         <Box sx={{ 
             p: 2, px: { xs: 2, md: 4 }, 

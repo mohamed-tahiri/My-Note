@@ -1,8 +1,9 @@
+import { Box, Typography } from "@mui/material";
+
 export default function RegisterPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Register</h1>
-      {/* Registration form goes here */}
-    </div>
+    <Box>
+      <Typography>Register</Typography>
+    </Box>
   );
 }

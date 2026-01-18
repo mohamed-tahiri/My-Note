@@ -1,12 +1,5 @@
-import { Box, Typography, Fade, type SxProps, type Theme } from '@mui/material';
-import { type ElementType } from 'react';
-
-interface EmptyStateProps {
-  icon: ElementType; 
-  title: string;
-  description: string;
-  sx?: SxProps<Theme>;
-}
+import type { EmptyStateProps } from '@/types/props';
+import { Box, Typography, Fade } from '@mui/material';
 
 export function EmptyState({ icon: Icon, title, description, sx }: EmptyStateProps) {
   return (

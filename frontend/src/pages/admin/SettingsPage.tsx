@@ -1,6 +1,6 @@
 import { Box, Typography, Paper, TextField, Button, Switch, FormControlLabel, Divider, Stack, alpha } from '@mui/material';
-import { Save, LogOut } from 'lucide-react'; // Ajout de LogOut
-import { useAuth } from '@/hooks/useAuth'; // Import de ton hook
+import { Save, LogOut } from 'lucide-react'; 
+import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 export default function SettingsPage() {

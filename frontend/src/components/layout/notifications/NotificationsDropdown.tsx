@@ -1,82 +1,52 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Socket } from 'socket.io-client';
-import type { Notification } from '@/types/notification';
-import { getByUserId, markAsRead } from '@/api/notificationsService';
+import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { 
   Box, IconButton, Badge, Menu, Typography, 
-  List, ListItem, ListItemText, Divider, CircularProgress 
+  List, ListItem, ListItemText, Divider 
 } from '@mui/material';
-import { logger } from '@/utils/logger';
 
-interface NotificationsDropdownProps {
-  socket: Socket;
-  userId: string | number;
-}
+import { useNotifications, useNotificationMutations, notificationKeys } from '@/hooks/queries/useNotificationQueries';
+import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
+import type { Notification } from '@/types/notification';
+import type { NotificationsDropdownProps } from '@/types/props';
 
 const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, userId }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  
+  const queryClient = useQueryClient();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const loadNotifications = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const res = await getByUserId(Number(userId));
-      setNotifications(res.data);
-    } catch (err) {
-      logger.error('Erreur lors du chargement des notifications:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [userId]);
+  // 1. DATA FETCHING
+  const { data: notifications = [], isLoading, error } = useNotifications(Number(userId));
+  
+  // 2. MUTATIONS
+  const { markReadMutation } = useNotificationMutations(Number(userId));
 
+  // 3. SOCKETS : Injection directe dans le cache TanStack
   useEffect(() => {
-    loadNotifications();
+    if (!socket || !userId) return;
 
     const handleNewNotif = (notif: Notification) => {
-      setNotifications(prev => [notif, ...prev]);
+      queryClient.setQueryData(notificationKeys.user(Number(userId)), (old: Notification[] | undefined) => {
+        return [notif, ...(old || [])];
+      });
     };
 
     socket.on('notification', handleNewNotif);
-    return () => {
-      socket.off('notification', handleNewNotif);
-    };
-  }, [loadNotifications, socket]);
+    return () => { socket.off('notification', handleNewNotif); };
+  }, [socket, userId, queryClient]);
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const markAsReadNoti = async (id: number) => {
-    try {
-      await markAsRead(id);
-      setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: true } : n))
-      );
-    } catch (err) {
-      logger.error('Erreur lors du marquage comme lu:', err);
-    }
-  };
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <Box>
-      <IconButton 
-        onClick={handleOpen} 
-        size="large"
-        sx={{ color: 'primary.main' }}
-      >
+      <IconButton onClick={handleOpen} size="large" sx={{ color: 'primary.main' }}>
         <Badge 
           badgeContent={unreadCount} 
-          color="success" // Utilise le vert #10B981 de votre thème
+          color="success" 
           sx={{ '& .MuiBadge-badge': { fontWeight: 700, fontSize: '0.65rem' } }}
         >
           <NotificationsIcon />
@@ -96,11 +66,13 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
             maxHeight: 480,
             borderRadius: '12px',
             boxShadow: '0px 10px 25px rgba(0,0,0,0.1)',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            border: '1px solid',
+            borderColor: 'divider'
           }
         }}
       >
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ p: 2 }}>
           <Typography variant="subtitle1" fontWeight={700} color="primary.main">
             Notifications
           </Typography>
@@ -108,28 +80,23 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
         
         <Divider />
 
-        <List sx={{ p: 0 }}>
-          {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : notifications.length === 0 ? (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Aucune notification
-              </Typography>
-            </Box>
-          ) : (
-            notifications.map((notif) => (
+        <AsyncWrapper 
+          loading={isLoading} 
+          error={error} 
+          isEmpty={notifications.length === 0}
+          emptyMessage="Aucune notification"
+        >
+          <List sx={{ p: 0 }}>
+            {notifications.map((notif) => (
               <ListItem
                 key={notif.id}
-                onClick={() => !notif.read && markAsReadNoti(notif.id)}
+                onClick={() => !notif.read && markReadMutation.mutate(notif.id)}
                 sx={{
                   cursor: 'pointer',
                   borderLeft: !notif.read ? '4px solid' : 'none',
                   borderColor: 'success.main',
-                  bgcolor: !notif.read ? 'success.light' : 'transparent',
-                  '&:hover': { bgcolor: !notif.read ? 'success.light' : 'action.hover' },
+                  bgcolor: !notif.read ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
+                  '&:hover': { bgcolor: !notif.read ? 'rgba(16, 185, 129, 0.12)' : 'action.hover' },
                   transition: 'all 0.2s',
                   py: 1.5
                 }}
@@ -144,13 +111,13 @@ const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ socket, u
                   }}
                   secondaryTypographyProps={{
                     variant: 'caption',
-                    sx: { mt: 0.5, display: 'block', textTransform: 'uppercase' }
+                    sx: { mt: 0.5, display: 'block' }
                   }}
                 />
               </ListItem>
-            ))
-          )}
-        </List>
+            ))}
+          </List>
+        </AsyncWrapper>
       </Menu>
     </Box>
   );

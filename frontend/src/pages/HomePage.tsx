@@ -1,8 +1,9 @@
+import { Box, Typography } from "@mui/material";
+
 export default function HomePage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Home</h1>
-      {/* Home page content goes here */}
-    </div>
+    <Box>
+      <Typography className="text-2xl font-bold">Home</Typography>
+    </Box>
   );
 }

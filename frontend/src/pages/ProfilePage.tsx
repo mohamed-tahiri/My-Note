@@ -7,13 +7,13 @@ import {
   Chip
 } from '@mui/material';
 import { useAuth } from '@/hooks/useAuth';
-import { updateProfile } from '@/api/authService'; // À créer/adapter
 import SaveIcon from '@mui/icons-material/Save';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import { logger } from '@/utils/logger';
+import { updateProfile } from '@/api/userService';
 
 export default function ProfilePage() {
-  const { user, updateUserInfo } = useAuth(); // On suppose que updateUserInfo met à jour le state global
+  const { user, updateUserInfo } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 

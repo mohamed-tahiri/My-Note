@@ -1,11 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Box, CircularProgress } from '@mui/material';
-
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  allowedRoles?: string[]; // Ajout des rôles autorisés
-}
+import type { ProtectedRouteProps } from '@/types/props';
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading, user } = useAuth();

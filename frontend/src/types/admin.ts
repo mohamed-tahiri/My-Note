@@ -89,3 +89,40 @@ export interface LogEntry {
   status?: string;
   location?: string;
 }
+
+export interface ChartDataItem {
+  [key: string]: string | number;
+}
+
+export interface BaseBarChartProps<T extends ChartDataItem> {
+  title: string;
+  data: T[];
+  xAxisKey: keyof T;
+  barKey: keyof T;
+  color?: string;
+  height?: number;
+  barSize?: number;
+}
+
+export interface BaseComposedChartProps<T extends ChartDataItem> {
+  title: string;
+  data: T[];
+  xAxisKey: keyof T;
+  areaKey: keyof T;
+  barKey: keyof T;
+  lineKey: keyof T;
+  height?: number;
+}
+
+export interface Column<T> {
+  header: string;
+  key: keyof T | string;
+  render?: (item: T) => ReactNode; // Fonction optionnelle pour un rendu personnalisé (Chip, Icon, etc.)
+  align?: 'left' | 'center' | 'right';
+}
+
+export interface GenericTableProps<T> {
+  title: string;
+  data: T[];
+  columns: Column<T>[];
+}
