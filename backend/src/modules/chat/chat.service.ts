@@ -23,23 +23,29 @@ export class ChatService {
       throw new NotFoundException('One or more users not found');
     }
 
+    const owner = await this.userRepository.findOne({
+      where: { id: createChatDto.ownerId },
+    });
+
+    if (!owner) {
+      throw new NotFoundException('Owner user not found');
+    }
+
     const chat = this.chatRepository.create({
+      name: createChatDto.name,
+      type: createChatDto.type,
       participants,
+      ownerId: createChatDto.ownerId,
+      owner,
     });
 
     return this.chatRepository.save(chat);
   }
 
-  findAll() {
-    return this.chatRepository.find({
-      relations: ['participants', 'messages'],
-    });
-  }
-
   async findOne(id: number) {
     const chat = await this.chatRepository.findOne({
       where: { id },
-      relations: ['participants', 'messages', 'messages.sender'],
+      relations: ['owner','participants', 'messages', 'messages.sender'],
       order: {
         messages: {
           createdAt: 'ASC',
@@ -59,9 +65,9 @@ export class ChatService {
           id: userId,
         },
       },
-      relations: ['participants', 'lastMessage', 'lastMessage.sender'],
+      relations: ['owner','participants', 'lastMessage', 'lastMessage.sender'],
       order: {
-        updatedAt: 'DESC', // Pour afficher les discussions les plus actives en haut
+        updatedAt: 'DESC',
       },
     });
 

@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsNumber,
 } from 'class-validator';
 
 export class CreateChatDto {
@@ -25,6 +26,14 @@ export class CreateChatDto {
   @IsOptional()
   @IsEnum(['private', 'task_group'])
   type?: string = 'private';
+
+  @ApiProperty({
+    description: 'owner of the chat',
+    example: 1,
+    type: Number,
+  })
+  @IsNumber()
+  ownerId?: number;
 
   @ApiProperty({
     description: 'List of user IDs participating in the chat',

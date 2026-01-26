@@ -14,7 +14,7 @@ export const useChatSocket = () => {
             socket = io(env.apiSocket, { query: { userId: user.id } });
 
             socket.on('connect', () => {
-                logger.info('Connected to socket server');
+                logger.debug('Connected to socket server');
             });
         }
     }, [user]);
@@ -28,6 +28,7 @@ export const useChatSocket = () => {
     }, []);
 
     const leaveChat = useCallback((chatId: number) => {
+        logger.debug('leave to socket server');
         socket?.emit('leaveChat', chatId);
     }, []);
 

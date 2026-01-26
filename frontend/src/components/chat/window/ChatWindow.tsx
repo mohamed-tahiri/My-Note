@@ -10,7 +10,7 @@ import { useMessages, useMessageMutations, messageKeys } from '@/hooks/queries/u
 
 import { ChatMessage } from '../ChatMessage';
 import { ChatInput } from '../ChatInput';
-import { ChatInfoDrawer } from './ChatInfoDrawer';
+import { ChatInfoDrawer } from './infos/ChatInfoDrawer';
 import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
 import type { Message } from '@/types/message';
 import Header from './Header';

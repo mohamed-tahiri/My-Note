@@ -7,6 +7,7 @@ import {
   JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -27,6 +28,13 @@ export class Chat {
     default: 'private',
   })
   type: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'ownerId' })
+  owner: User;
+
+  @Column({ nullable: true })
+  ownerId: number;
 
   @ManyToMany(() => User)
   @JoinTable()

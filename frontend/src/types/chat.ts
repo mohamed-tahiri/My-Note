@@ -16,6 +16,7 @@ export interface CreateChatDto {
     name: string;
     type: 'private' | 'task_group';
     participantIds: number[];
+    ownerId: number;
 }
 
 export interface UpdateChatDto {

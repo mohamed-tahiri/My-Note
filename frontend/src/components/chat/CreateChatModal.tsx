@@ -17,18 +17,18 @@ import {
 import { useUsers } from '@/hooks/queries/useUserQueries';
 import { useChatMutations } from '@/hooks/queries/useChatQueries';
 import type { User } from '@/types/user';
+import { useAuth } from '@/hooks/useAuth';
 import type { CreateChatDto } from '@/types/chat';
 import type { CreateChatModalProps } from '@/types/props';
 
 export function CreateChatModal({ open, onClose }: CreateChatModalProps) {
-    // 1. DATA FETCHING (Utilise le cache global des utilisateurs)
+    const { user } = useAuth();
     const { data: users = [], isLoading: fetchingUsers } = useUsers();
 
-    // 2. MUTATIONS (Gère l'invalidation du cache 'chats' automatiquement)
     const { createChat } = useChatMutations();
 
     // UI STATES
-    const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+    const [selectedUsers, setSelectedUsers] = useState<User[]>([user!]);
     const [chatName, setChatName] = useState('');
 
     // Reset des champs lors de la fermeture
@@ -40,6 +40,7 @@ export function CreateChatModal({ open, onClose }: CreateChatModalProps) {
 
     // Fonction de création
     const handleCreate = () => {
+        if (!user?.id) return;
         if (selectedUsers.length === 0) return;
 
         const isGroup = selectedUsers.length > 1;
@@ -48,6 +49,7 @@ export function CreateChatModal({ open, onClose }: CreateChatModalProps) {
             name: isGroup ? chatName || 'Nouveau groupe' : '',
             type: isGroup ? 'task_group' : 'private',
             participantIds: selectedUsers.map((u) => u.id),
+            ownerId: user.id,
         };
 
         // On utilise mutate pour déclencher la création

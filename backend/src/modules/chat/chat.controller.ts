@@ -16,12 +16,6 @@ export class ChatController {
     return this.chatService.create(createChatDto);
   }
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.chatService.findAll();
-  }
-
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
@@ -33,14 +27,4 @@ export class ChatController {
   findByUser(@Param('id') id: string) {
     return this.chatService.findChatsByUser(+id);
   }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateChatDto: UpdateChatDto) {
-  //   return this.chatService.update(+id, updateChatDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.chatService.remove(+id);
-  // }
 }
