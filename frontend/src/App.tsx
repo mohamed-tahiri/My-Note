@@ -6,6 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { getThemeOptions } from './theme/index.ts';
 import { useAuth } from './hooks/useAuth.ts';
 import { useMemo } from 'react';
+import { PresenceProvider } from './context/PresenceContext.jsx';
 
 function App() {
     const { user } = useAuth();
@@ -20,7 +21,9 @@ function App() {
             <CssBaseline />
             <ErrorBoundary>
                 <BrowserRouter>
-                    <AppRoutes />
+                    <PresenceProvider>
+                        <AppRoutes />
+                    </PresenceProvider>
                 </BrowserRouter>
             </ErrorBoundary>
         </ThemeProvider>
