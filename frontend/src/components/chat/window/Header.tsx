@@ -25,11 +25,7 @@ export default function Header({ chat, user, setInfoOpen }: HeaderChatWindow) {
                 </Avatar>
                 <Box>
                     <Typography variant="body1" sx={{ fontWeight: 800 }}>
-                        {chat.name ||
-                            chat.participants?.find((p: User) => p.id !== user?.id)?.firstName}
-                    </Typography>
-                    <Typography variant="caption" color="success.main" sx={{ fontWeight: 700 }}>
-                        • En ligne
+                        {chat.name || chat.participants?.find((p: User) => p.id !== user?.id)?.firstName}
                     </Typography>
                 </Box>
             </Stack>
