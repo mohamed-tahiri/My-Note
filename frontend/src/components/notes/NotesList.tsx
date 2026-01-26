@@ -38,7 +38,6 @@ export function NotesList({ notes, onEdit, onDelete }: NotesListProps) {
 
                 return (
                     <Grid size={{ xs: 12, md: 4 }} key={p.key}>
-                        {/* Header de la colonne */}
                         <Stack
                             direction="row"
                             spacing={1}
@@ -71,7 +70,6 @@ export function NotesList({ notes, onEdit, onDelete }: NotesListProps) {
                             />
                         </Stack>
 
-                        {/* Conteneur des notes de la colonne */}
                         <Stack spacing={2} sx={{ minHeight: 200 }}>
                             {filteredNotes.length > 0 ? (
                                 filteredNotes.map((note) => (

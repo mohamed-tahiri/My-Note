@@ -17,6 +17,7 @@ export interface User {
     language: string;
     createdAt: string;
     updatedAt: string;
+    isOnline: boolean;
 }
 
 export interface CreateUserDto {

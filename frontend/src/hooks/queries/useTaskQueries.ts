@@ -65,7 +65,7 @@ export const useTaskMutations = () => {
     const createTaskMutation = useMutation({
         mutationFn: (data: CreateTaskDto) => create(data).then((res) => res.data),
         onSuccess: (newTask) => {
-            logger.info(newTask);
+            logger.debug(newTask);
             queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
         },
     });
@@ -74,7 +74,7 @@ export const useTaskMutations = () => {
         mutationFn: ({ id, data }: { id: number; data: UpdateTaskDto }) =>
             update(id, data).then((res) => res.data),
         onSuccess: (updatedTask) => {
-            logger.info(updatedTask);
+            logger.debug(updatedTask);
             queryClient.invalidateQueries({ queryKey: taskKeys.all });
         },
     });

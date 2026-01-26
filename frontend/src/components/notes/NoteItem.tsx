@@ -61,9 +61,10 @@ export function NoteItem({ note, onEdit, onDelete }: NoteItemProps) {
                     color="text.secondary"
                     sx={{
                         display: '-webkit-box',
-                        WebkitLineClamp: 3,
+                        WebkitLineClamp: 1,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                         lineHeight: 1.6,
                     }}
                 >
@@ -81,7 +82,6 @@ export function NoteItem({ note, onEdit, onDelete }: NoteItemProps) {
                 }}
             >
                 <Typography variant="caption" color="text.disabled">
-                    {/* Formatage de date optionnel */}
                     {new Date().toLocaleDateString()}
                 </Typography>
 

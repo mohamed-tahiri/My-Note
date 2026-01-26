@@ -14,3 +14,13 @@ export const updateProfile = async (id: number, data: UpdateUserDto): Promise<Us
     const response = await api.patch<User>(`/users/${id}`, data);
     return response.data;
 };
+
+
+/**
+ * Met a jour l'utilisateur on ligne
+ */
+
+export const statusUser = async (id: number): Promise<User> => {
+  const response = await api.patch<User>(`/users/status/${id}`);
+    return response.data;
+};

@@ -6,16 +6,16 @@ import { useChats } from '@/hooks/queries/useChatQueries'; // Ton nouveau hook
 import { CreateChatModal } from '@/components/chat/CreateChatModal';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { AsyncWrapper } from '@/components/ui/AsyncWrapper';
+import { logger } from '@/utils/logger';
 
 export default function ChatsPage() {
     const { id: activeChatId } = useParams();
     const { user } = useAuth();
 
-    // 1. DATA FETCHING avec TanStack Query
-    // Remplace loadChats, chats, et loading
     const { data: chats, isLoading, error, refetch } = useChats(Number(user?.id));
 
-    // 2. UI STATE (Uniquement pour la modale)
+    logger.debug('ChatsPage rendered with chats:', chats);
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     return (
